@@ -1,0 +1,520 @@
+@import 'tailwindcss';
+
+/* CSS library pihak ketiga (di-bundle lokal oleh Vite, tanpa CDN) */
+@import 'choices.js/public/assets/styles/choices.css';
+@import 'vanilla-calendar-pro/styles/index.css';
+@import 'vanilla-calendar-pro/styles/themes/light.css';
+@import 'nprogress/nprogress.css';
+@import 'tippy.js/dist/tippy.css';
+
+@source '../../vendor/laravel/framework/src/Illuminate/Pagination/resources/views/*.blade.php';
+@source '../../storage/framework/views/*.php';
+@source '../**/*.blade.php';
+@source '../**/*.js';
+
+/* ── Self-hosted fonts (offline / LAN — tanpa CDN) ───────────────── */
+@font-face {
+    font-family: 'Inter';
+    font-style: normal;
+    font-weight: 400 700;
+    font-display: swap;
+    src: url('/fonts/inter-latin.woff2') format('woff2');
+}
+
+@font-face {
+    font-family: 'Plus Jakarta Sans';
+    font-style: normal;
+    font-weight: 400 700;
+    font-display: swap;
+    src: url('/fonts/plus-jakarta-sans-latin.woff2') format('woff2');
+}
+
+/* ══ Design system E-ARSIPKU — sumber kebenaran tunggal ═══════════════
+   Semua warna, radius, dan bayangan didefinisikan sebagai variabel di sini.
+   Untuk mengubah tema cukup ubah nilai di blok @theme ini — komponen & view
+   tidak menyimpan warna mentah (hex) lagi.
+
+   Kosakata spesifikasi   →  token kerja
+     Primary   #009177     →  --color-accent          (CTA, tautan, fokus)
+     Background #F7FAF9     →  --color-surface         (latar halaman)
+     Surface   #FFFFFF      →  --color-surface-raised  (kartu / panel)
+     Text      #16322F      →  --color-foreground
+     Muted     #64748B      →  --color-muted
+   ──────────────────────────────────────────────────────────────────── */
+@theme {
+    --font-sans: 'Inter', ui-sans-serif, system-ui, sans-serif;
+    --font-display: 'Plus Jakarta Sans', 'Inter', ui-sans-serif, system-ui, sans-serif;
+
+    /* ── Brand utama (Primary #009177) — CTA, tautan, aksen, sidebar ── */
+    --color-accent: #009177;         /* Primary */
+    --color-accent-hover: #007A66;   /* Primary Hover */
+    --color-accent-active: #006B5A;  /* Primary Dark */
+    --color-accent-soft: #E6F5F2;    /* Primary Soft — tint badge/area lembut */
+
+    /* ── Sidebar & panel brand — kini memakai Primary #009177 terang ──
+       Aksen di atas sidebar dibangun dari putih transparan (bukan teal gelap). */
+    --color-primary: #009177;        /* sidebar = primary */
+    --color-primary-on: #ffffff;
+    --color-secondary: #007A66;      /* hover gelap di atas primary */
+    --color-primary-bright: #ffffff; /* indikator/garis aktif = putih */
+    --color-primary-tint: #ffffff;   /* ikon aktif = putih */
+    --color-primary-label: rgba(255, 255, 255, 0.72); /* label brand di atas primary */
+    --color-indigo: #00A88C;         /* nada kedua gradien (turunan terang primary) */
+
+    /* ── Permukaan & teks ── */
+    --color-surface: #F7FAF9;        /* Background */
+    --color-surface-raised: #FFFFFF; /* Surface */
+    --color-foreground: #16322F;     /* Text Primary */
+    --color-muted: #64748B;          /* Text Secondary */
+    --color-border-default: #E5E7EB; /* Border */
+    --color-border-strong: #D1D5DB;
+
+    /* ── Semantik (badge: success / warning / danger / neutral) ──
+       Success diselaraskan ke Primary agar identitas hijau tunggal. */
+    --color-success: #009177;
+    --color-success-soft: #E6F5F2;
+    --color-warning: #D97706;
+    --color-warning-soft: #FEF3C7;
+    --color-danger: #DC2626;
+    --color-danger-soft: #FEE2E2;
+    --color-neutral: #64748B;
+    --color-neutral-soft: #F1F5F9;
+
+    /* ── Elevasi berlapis (lembut) ── */
+    --shadow-xs: 0 1px 2px rgb(15 23 42 / 0.04);
+    --shadow-card: 0 1px 2px rgb(15 23 42 / 0.03), 0 8px 20px -10px rgb(15 23 42 / 0.10);
+    --shadow-card-hover: 0 2px 4px rgb(15 23 42 / 0.04), 0 18px 36px -14px rgb(15 23 42 / 0.16);
+    --shadow-pop: 0 8px 32px -8px rgb(15 23 42 / 0.20);
+    --shadow-accent: 0 8px 20px -6px rgb(0 145 119 / 0.28);
+
+    /* ── Radius ── */
+    --radius-card: 1rem;        /* 16px — kartu (spesifikasi) */
+    --radius-input: 0.625rem;   /* 10px — input & kontrol form (spesifikasi) */
+    --radius-xl: 0.875rem;
+    --radius-2xl: 1rem;
+}
+
+/* ── Base ─────────────────────────────────────────────────────────── */
+@layer base {
+    body {
+        background-color: var(--color-surface);
+        background-image:
+            radial-gradient(60rem 60rem at 110% -10%, rgb(0 145 119 / 0.045), transparent 55%),
+            radial-gradient(50rem 50rem at -10% 0%, rgb(21 167 141 / 0.04), transparent 50%);
+        background-attachment: fixed;
+    }
+
+    h1, h2, h3, h4, h5, h6 {
+        font-family: var(--font-display);
+        letter-spacing: -0.01em;
+    }
+
+    ::selection {
+        background-color: rgb(0 145 119 / 0.18);
+    }
+
+    /* Scrollbar tipis & modern */
+    * {
+        scrollbar-width: thin;
+        scrollbar-color: #cbd5e1 transparent;
+    }
+}
+
+/* ── Komponen reusable ───────────────────────────────────────────── */
+@layer components {
+    /* Tombol */
+    .btn {
+        @apply inline-flex items-center justify-center gap-2 rounded-lg px-4 py-2.5 text-sm font-semibold transition-all duration-150 focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-accent/40 disabled:cursor-not-allowed disabled:opacity-50;
+    }
+    .btn-sm { @apply px-3.5 py-2 text-sm; }
+
+    /* Primary — aksi utama (solid brand #009177, tanpa gradien/neon) */
+    .btn-primary {
+        @apply text-white;
+        background-color: var(--color-accent);
+        box-shadow: var(--shadow-accent);
+    }
+    .btn-primary:hover { background-color: var(--color-accent-hover); }
+    .btn-primary:active { background-color: var(--color-accent-active); }
+
+    /* Secondary — aksi sekunder (permukaan putih bertepi) */
+    .btn-secondary,
+    .btn-outline {
+        @apply border border-border-strong bg-surface-raised text-foreground;
+        box-shadow: var(--shadow-xs);
+    }
+    .btn-secondary:hover,
+    .btn-outline:hover { @apply border-border-strong bg-surface; }
+
+    /* Dark — aksi netral di atas terang (mis. tombol "Terapkan") */
+    .btn-dark {
+        @apply bg-primary text-white;
+        box-shadow: var(--shadow-xs);
+    }
+    .btn-dark:hover { @apply bg-secondary; }
+
+    /* Danger — aksi merusak (garis merah, eskalasi ke solid bila perlu) */
+    .btn-danger {
+        @apply border border-red-200 bg-surface-raised text-red-600;
+        box-shadow: var(--shadow-xs);
+    }
+    .btn-danger:hover { @apply border-red-300 bg-red-50; }
+
+    .btn-excel {
+        @apply border border-border-strong bg-surface-raised text-accent;
+        box-shadow: var(--shadow-xs);
+    }
+    .btn-excel:hover { @apply bg-accent-soft; }
+
+    .btn-danger-solid { @apply bg-red-600 text-white; box-shadow: var(--shadow-xs); }
+    .btn-danger-solid:hover { @apply bg-red-700; }
+
+    /* Kartu — radius 16px, bayangan halus (spesifikasi) */
+    .card {
+        @apply border border-border-default bg-surface-raised;
+        border-radius: var(--radius-card);
+        box-shadow: var(--shadow-card);
+    }
+
+    /* Input & label — radius 10px (spesifikasi) */
+    .label { @apply mb-1.5 block text-xs font-semibold uppercase tracking-wide text-muted; }
+
+    .input {
+        @apply block w-full border border-border-strong bg-surface-raised px-3.5 py-2.5 text-sm text-foreground shadow-xs transition placeholder:text-slate-400 focus:border-accent focus:ring-2 focus:ring-accent/25 focus:outline-none;
+        border-radius: var(--radius-input);
+    }
+
+    /* ── Sidebar mengambang (floating) — modern healthcare workspace ── */
+    .app-sidebar {
+        width: 230px;
+        transition: width .24s cubic-bezier(.4, 0, .2, 1), transform .24s cubic-bezier(.4, 0, .2, 1);
+    }
+    .app-content { transition: padding-left .24s cubic-bezier(.4, 0, .2, 1); }
+
+    /* Hover halus pada item menu (transform kecil + warna) */
+    .sidebar-link { transition: background-color .15s ease, color .15s ease, transform .15s ease; }
+    .sidebar-link:hover { transform: translateX(2px); }
+
+    @media (min-width: 1024px) {
+        /* Konten menyesuaikan lebar sidebar mengambang: 12 + lebar + 12 px */
+        .app-content { padding-left: 254px; }
+        .app-content.is-collapsed { padding-left: 100px; }
+
+        /* Mode collapse (hanya desktop) — mobile selalu tampil penuh */
+        .app-sidebar.is-collapsed { width: 76px; }
+        .app-sidebar.is-collapsed .sidebar-label,
+        .app-sidebar.is-collapsed .sidebar-section,
+        .app-sidebar.is-collapsed .sidebar-brand-text { display: none; }
+        .app-sidebar.is-collapsed .sidebar-brand { justify-content: center; padding-left: 0; padding-right: 0; }
+        .app-sidebar.is-collapsed .sidebar-link { justify-content: center; }
+        .app-sidebar.is-collapsed .sidebar-foot { padding-left: 0; padding-right: 0; }
+        .app-sidebar.is-collapsed .sidebar-foot-inner { justify-content: center; }
+    }
+
+    /* Surface dekoratif untuk panel brand (login/sidebar) */
+    .brand-gradient {
+        background-color: var(--color-accent);
+        background-image:
+            radial-gradient(38rem 38rem at 100% -5%, rgb(255 255 255 / 0.16), transparent 62%),
+            radial-gradient(32rem 32rem at -12% 108%, rgb(0 0 0 / 0.12), transparent 60%),
+            linear-gradient(165deg, #00A088 0%, #007F6A 55%, #006B5A 100%);
+    }
+}
+
+/* ── NProgress — bar hijau ───────────────────────────────────────── */
+#nprogress .bar { background: var(--color-accent); height: 3px; }
+#nprogress .peg { box-shadow: 0 0 10px var(--color-accent), 0 0 5px var(--color-accent); }
+#nprogress .spinner-icon { border-top-color: var(--color-accent); border-left-color: var(--color-accent); }
+
+/* ── Tippy — tema kemenkes (hijau tua) ───────────────────────────── */
+.tippy-box[data-theme~='kemenkes'] {
+    background-color: var(--color-primary);
+    color: #fff;
+    border-radius: 8px;
+    font-size: 12px;
+    font-weight: 500;
+    box-shadow: var(--shadow-pop);
+}
+.tippy-box[data-theme~='kemenkes'][data-placement^='top'] > .tippy-arrow::before { border-top-color: var(--color-primary); }
+.tippy-box[data-theme~='kemenkes'][data-placement^='bottom'] > .tippy-arrow::before { border-bottom-color: var(--color-primary); }
+.tippy-box[data-theme~='kemenkes'][data-placement^='left'] > .tippy-arrow::before { border-left-color: var(--color-primary); }
+.tippy-box[data-theme~='kemenkes'][data-placement^='right'] > .tippy-arrow::before { border-right-color: var(--color-primary); }
+
+/* ══ Komponen select & datepicker (global) ══════════════════════════ */
+
+/* ── Choices.js — selaraskan dengan .input + ikon search ─────────── */
+.choices {
+    margin-bottom: 0;
+    /* Samakan radius semua state (closed/open/flipped). Tanpa ini, aturan
+       bawaan `.choices__inner` (radius 2.5px, spesifisitas sama dgn override
+       kita) bisa menang di state tertutup → kontrol tampak kotak saat tidak
+       dibuka, lalu rounded saat dibuka. */
+    --choices-border-radius: var(--radius-input);
+}
+.choices__inner {
+    min-height: 0;
+    /* Padding vertikal disamakan dgn `.input` (py-2.5 = 0.625rem) agar tinggi
+       kontrol identik & sejajar dengan input teks di sebelahnya. */
+    padding: 0.625rem 2rem 0.625rem 2.35rem;
+    background-color: #fff;
+    background-image: url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke-width='1.8' stroke='%2394a3b8'><path stroke-linecap='round' stroke-linejoin='round' d='m21 21-5.2-5.2m0 0A7.5 7.5 0 1 0 5.2 5.2a7.5 7.5 0 0 0 10.6 10.6Z'/></svg>");
+    background-repeat: no-repeat;
+    background-position: 0.8rem center;
+    background-size: 1.05rem 1.05rem;
+    border: 1px solid var(--color-border-strong);
+    /* !important agar mengalahkan aturan bawaan `.is-open .choices__inner`
+       (radius hanya atas: `X X 0 0`) yang membuat sudut bawah tampak siku.
+       Dropdown kita terpisah (margin-top 4px), jadi kontrol harus bulat penuh
+       di semua state — tertutup, fokus, maupun terbuka. */
+    border-radius: var(--radius-input) !important;
+    box-shadow: var(--shadow-xs);
+    font-size: 0.875rem;
+    line-height: 1.4;
+    color: var(--color-foreground);
+    transition: border-color .15s, box-shadow .15s;
+}
+.choices.is-focused .choices__inner,
+.choices.is-open .choices__inner {
+    border-color: var(--color-accent);
+    box-shadow: 0 0 0 2px rgb(0 145 119 / 0.22);
+}
+.choices__list--single { padding: 0; }
+.choices__list--single .choices__item {
+    color: var(--color-foreground);
+    white-space: nowrap;       /* jangan membungkus ke baris baru */
+    overflow: hidden;
+    text-overflow: ellipsis;   /* potong dgn "…" bila kolom terlalu sempit */
+}
+.choices[data-type*='select-one']::after {
+    border-color: #94a3b8 transparent transparent;
+    right: 0.85rem;
+}
+.choices[data-type*='select-one'].is-open::after {
+    border-color: transparent transparent #94a3b8;
+    margin-top: -7px;
+}
+.choices__list--dropdown,
+.choices__list[aria-expanded] {
+    border: 1px solid var(--color-border-strong);
+    border-radius: 0.75rem;
+    box-shadow: var(--shadow-pop);
+    margin-top: 4px;
+    overflow: hidden;
+    z-index: 30;
+    /* Jangan paksa panel selebar tombol trigger. Biarkan melebar mengikuti isi
+       item (min 260px, maks 360px) agar label panjang seperti
+       "RPK — Rencana Pelaksanaan Kegiatan" tidak pecah/terpotong di tengah kata. */
+    width: max-content;
+    min-width: 260px;
+    max-width: 360px;
+}
+/* Daftar item: scroll rapi bila panjang; search box tetap terlihat krn ia
+   sibling di atas kontainer scroll ini. */
+.choices__list--dropdown .choices__list,
+.choices__list[aria-expanded] .choices__list {
+    padding: 0.25rem;
+    max-height: 18rem;          /* ≈ max-h-72 */
+    overflow-y: auto;
+    scrollbar-width: thin;      /* Firefox: scrollbar tipis */
+    scrollbar-color: var(--color-border-strong) transparent;
+}
+.choices__list--dropdown .choices__list::-webkit-scrollbar,
+.choices__list[aria-expanded] .choices__list::-webkit-scrollbar { width: 8px; }
+.choices__list--dropdown .choices__list::-webkit-scrollbar-thumb,
+.choices__list[aria-expanded] .choices__list::-webkit-scrollbar-thumb {
+    background: var(--color-border-strong);
+    border-radius: 9999px;
+}
+.choices__list--dropdown .choices__item,
+.choices__list[aria-expanded] .choices__item {
+    font-size: 0.875rem;
+    padding: 0.5rem 0.875rem;
+    color: #334155;
+    border-radius: 0.5rem;
+    /* Potong rapi dgn elipsis — jangan wrap di tengah kata. Teks penuh tetap
+       muat karena panel melebar mengikuti isi (lihat aturan width di atas). */
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+/* Item yang sedang terpilih (mis. "Semua kategori") ditandai tetap dgn warna brand. */
+.choices__list--dropdown .choices__item--selectable[aria-selected='true'],
+.choices__list[aria-expanded] .choices__item--selectable[aria-selected='true'] {
+    background: var(--color-accent-soft);
+    color: var(--color-accent);
+    font-weight: 500;
+}
+/* Hover / sorot keyboard: warna brand lebih tegas (menang atas state terpilih). */
+.choices__list--dropdown .choices__item--selectable.is-highlighted,
+.choices__list[aria-expanded] .choices__item--selectable.is-highlighted {
+    background: var(--color-accent-soft);
+    color: var(--color-accent);
+    font-weight: 600;
+}
+/* Selektor digandakan dgn `.choices[data-type*='select-one']` agar spesifisitasnya
+   menyamai aturan bawaan Choices (`padding:10px`) yang kalau tidak akan menimpa
+   padding-left kita → teks "Cari…" menabrak ikon search. */
+.choices[data-type*='select-one'] .choices__list--dropdown .choices__input,
+.choices[data-type*='select-one'] .choices__list[aria-expanded] .choices__input,
+.choices__list--dropdown .choices__input {
+    margin: 0;
+    padding: 0.55rem 0.875rem 0.55rem 2.1rem;
+    font-size: 0.875rem;
+    border: 0;
+    border-bottom: 1px solid var(--color-border-default);
+    background-color: #fff;
+    /* Tetap menempel di atas saat daftar di-scroll. */
+    position: sticky;
+    top: 0;
+    z-index: 1;
+    background-image: url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke-width='1.8' stroke='%2394a3b8'><path stroke-linecap='round' stroke-linejoin='round' d='m21 21-5.2-5.2m0 0A7.5 7.5 0 1 0 5.2 5.2a7.5 7.5 0 0 0 10.6 10.6Z'/></svg>");
+    background-repeat: no-repeat;
+    background-position: 0.7rem center;
+    background-size: 1rem 1rem;
+}
+.choices__input:focus { outline: none; box-shadow: none; }
+
+/* ── Vanilla Calendar Pro — tema teal (override aksen cyan bawaan) ─ */
+/* Ikon kalender pada input tanggal (input[type=date] diubah jadi text + .vcal-input) */
+.input.vcal-input {
+    padding-right: 2.5rem;
+    background-image: url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke-width='1.8' stroke='%2394a3b8'><path stroke-linecap='round' stroke-linejoin='round' d='M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 0 1 2.25-2.25h13.5A2.25 2.25 0 0 1 21 7.5v11.25m-18 0A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75m-18 0V11.25A2.25 2.25 0 0 1 5.25 9h13.5A2.25 2.25 0 0 1 21 11.25v7.5'/></svg>");
+    background-repeat: no-repeat;
+    background-position: right 0.8rem center;
+    background-size: 1.1rem 1.1rem;
+}
+
+[data-vc=calendar] { font-family: var(--font-sans); }
+[data-vc=calendar][data-vc-input] {
+    border: 1px solid var(--color-border-strong);
+    box-shadow: var(--shadow-pop);
+    background: #fff;
+    /* VCal mem-portal popup ke <body>; harus di atas modal (#ea-modal z-60)
+       agar tidak tersembunyi saat datepicker dibuka di dalam modal. */
+    z-index: 70;
+}
+[data-vc-theme='light'] .vc-date__btn:hover { background-color: var(--color-accent-soft) !important; }
+[data-vc-theme='light'] [data-vc-date-today] .vc-date__btn { color: var(--color-accent) !important; }
+[data-vc-theme='light'] [data-vc-date-selected] .vc-date__btn {
+    background-color: var(--color-accent) !important;
+    color: #fff !important;
+}
+[data-vc-theme='light'] [data-vc-date-selected] .vc-date__btn:hover {
+    background-color: var(--color-accent-hover) !important;
+}
+[data-vc-theme='light'] [data-vc-months-month-selected] .vc-months__month,
+[data-vc-theme='light'] [data-vc-years-year-selected] .vc-years__year {
+    background-color: var(--color-accent) !important;
+    color: #fff !important;
+}
+
+/* ── Modal global (gaya Bootstrap) ───────────────────────────────── */
+.ea-modal__backdrop {
+    opacity: 0;
+    transition: opacity 0.2s ease;
+}
+.ea-modal__dialog {
+    opacity: 0;
+    transform: translateY(16px) scale(0.97);
+    transition: opacity 0.2s ease, transform 0.2s cubic-bezier(0.22, 1, 0.36, 1);
+}
+.ea-modal.is-open .ea-modal__backdrop { opacity: 1; }
+.ea-modal.is-open .ea-modal__dialog {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+}
+
+/* ── Halaman login: komponen premium (Swiss minimalism + hijau) ──── */
+@layer components {
+    /* Kartu form */
+    .auth-card {
+        @apply rounded-3xl border border-slate-100 bg-white;
+        box-shadow:
+            0 1px 2px rgb(15 23 42 / 0.04),
+            0 24px 60px -24px rgb(15 23 42 / 0.18);
+    }
+
+    /* Wadah logo premium */
+    .auth-logo-box {
+        @apply inline-flex items-center rounded-2xl bg-white px-5 py-3.5 ring-1 ring-white/50;
+        box-shadow: 0 12px 30px -12px rgb(0 0 0 / 0.45);
+    }
+
+    /* Input */
+    .auth-input {
+        @apply h-[54px] w-full rounded-xl border border-slate-200 bg-slate-50/70 pl-12 pr-4 text-[15px] font-medium text-foreground transition-all duration-200 placeholder:font-normal placeholder:text-slate-400;
+    }
+    .auth-input:hover { @apply border-slate-300 bg-white; }
+    .auth-input:focus {
+        @apply border-accent bg-white outline-none;
+        box-shadow: 0 0 0 4px rgb(0 145 119 / 0.13);
+    }
+    .auth-input.is-error { @apply border-red-300 bg-red-50/50; }
+    .auth-input.is-error:focus { box-shadow: 0 0 0 4px rgb(220 38 38 / 0.12); }
+
+    /* Ikon dalam input mengikuti state focus */
+    .auth-icon { @apply text-slate-400 transition-colors duration-200; }
+    .auth-field:focus-within .auth-icon { @apply text-accent; }
+    .auth-field.is-error .auth-icon { @apply text-red-400; }
+
+    /* Tombol utama */
+    .auth-btn {
+        @apply relative flex h-[54px] w-full items-center justify-center gap-2 overflow-hidden rounded-xl text-[15px] font-semibold text-white transition-all duration-200 focus:outline-none focus-visible:ring-4 focus-visible:ring-accent/25;
+        background-image: linear-gradient(135deg, var(--color-accent-hover) 0%, var(--color-accent) 100%);
+        box-shadow: 0 6px 16px -8px rgb(0 145 119 / 0.35);
+    }
+    .auth-btn:hover { @apply brightness-[1.04]; box-shadow: 0 8px 20px -10px rgb(0 145 119 / 0.40); }
+    .auth-btn:active { @apply brightness-95; box-shadow: 0 4px 12px -8px rgb(0 145 119 / 0.35); }
+
+    /* Checkbox modern */
+    .auth-check-box {
+        @apply flex h-5 w-5 shrink-0 items-center justify-center rounded-md border border-slate-300 bg-white text-white transition-all duration-150;
+    }
+    .auth-check-input:checked ~ .auth-check-box { @apply border-accent bg-accent; }
+    .auth-check-input:focus-visible ~ .auth-check-box { box-shadow: 0 0 0 4px rgb(0 145 119 / 0.20); }
+    .auth-check-box svg { @apply scale-0 transition-transform duration-150; }
+    .auth-check-input:checked ~ .auth-check-box svg { @apply scale-100; }
+
+    /* Chip kartu arsip dekoratif (kaca) */
+    .auth-archive-chip {
+        @apply flex items-center gap-2.5 rounded-2xl border border-white/15 bg-white/10 px-3.5 py-2.5 backdrop-blur-sm;
+    }
+}
+
+/* ── Animasi halaman login ───────────────────────────────────────── */
+@keyframes ea-fade-up {
+    from { opacity: 0; transform: translateY(14px); }
+    to   { opacity: 1; transform: translateY(0); }
+}
+@keyframes ea-fade-in {
+    from { opacity: 0; }
+    to   { opacity: 1; }
+}
+
+/* Elemen yang muncul berurutan (di-set animation-delay inline) */
+.ea-enter {
+    opacity: 0;
+    animation: ea-fade-up 0.6s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+.ea-enter-fade {
+    opacity: 0;
+    animation: ea-fade-in 0.8s ease forwards;
+}
+
+/* Orb glow mengambang */
+.ea-orb {
+    position: absolute;
+    border-radius: 9999px;
+    filter: blur(40px);
+    pointer-events: none;
+}
+/* Orb dibiarkan statis sebagai glow latar — tanpa animasi mengambang (suasana tenang) */
+
+@media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after {
+        transition-duration: 0.01ms !important;
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+    }
+    .ea-enter, .ea-enter-fade { opacity: 1 !important; }
+}
