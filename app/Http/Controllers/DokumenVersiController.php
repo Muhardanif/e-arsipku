@@ -6,6 +6,8 @@ use App\Concerns\CatatAktivitas;
 use App\Http\Requests\StoreDokumenVersiRequest;
 use App\Models\Dokumen;
 use App\Models\DokumenVersi;
+use App\Services\NotifikasiService;
+use App\Support\EkstraksiTeks;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -72,6 +74,12 @@ class DokumenVersiController extends Controller
             'revisi' => $versi->kodeRevisi(),
         ]);
 
+        // Revisi mereset tanggal_review_terakhir → kandidat review berubah.
+        app(NotifikasiService::class)->lupakanCache();
+
+        // Indeks isi berkas revisi baru untuk pencarian penuh.
+        EkstraksiTeks::indeks($versi);
+
         return redirect()->route('dokumen.show', $dokumen)
             ->with('success', "Revisi {$versi->kodeRevisi()} berhasil diunggah.");
     }
@@ -110,6 +118,8 @@ class DokumenVersiController extends Controller
             'dokumen' => $dokumen->nomor_dokumen,
             'revisi' => $kodeDihapus,
         ]);
+
+        app(NotifikasiService::class)->lupakanCache();
 
         return redirect()->route('dokumen.show', $dokumen)
             ->with('success', "Revisi {$kodeDihapus} berhasil dihapus.");

@@ -249,6 +249,40 @@
                     <p class="px-6 py-8 text-center text-sm text-slate-500">Belum pernah dipinjam.</p>
                 @endforelse
             </section>
+
+            {{-- Riwayat akses berkas — siapa melihat/mengunduh (admin & petugas) --}}
+            @if ($bisaKelola)
+                <section class="card overflow-hidden">
+                    <div class="flex items-center justify-between gap-2 border-b border-slate-100 px-6 py-4">
+                        <h3 class="text-sm font-semibold text-foreground">Riwayat Akses Berkas</h3>
+                        @if ($riwayatAkses->isNotEmpty())
+                            <a href="{{ route('audit-akses.index', ['q' => $dokumen->nomor_dokumen]) }}"
+                               class="text-xs font-medium text-accent hover:underline">Lihat semua</a>
+                        @endif
+                    </div>
+                    @forelse ($riwayatAkses as $akses)
+                        @php $unduh = $akses->aksi === 'unduh_dokumen'; @endphp
+                        <div class="flex items-center gap-3 border-b border-slate-50 px-6 py-3 last:border-0">
+                            <span class="flex h-8 w-8 shrink-0 items-center justify-center rounded-full {{ $unduh ? 'bg-indigo-50 text-indigo-600' : 'bg-slate-100 text-slate-500' }}">
+                                @svg($unduh ? 'heroicon-o-arrow-down-tray' : 'heroicon-o-document-magnifying-glass', 'h-4 w-4')
+                            </span>
+                            <div class="min-w-0 flex-1">
+                                <p class="text-sm text-foreground">
+                                    <span class="font-medium">{{ $akses->user?->nama ?? 'Sistem' }}</span>
+                                    <span class="text-slate-500">{{ $unduh ? 'mengunduh' : 'melihat' }} berkas</span>
+                                </p>
+                                <p class="text-[11px] text-slate-400">
+                                    {{ $akses->created_at?->translatedFormat('d M Y, H:i') }}
+                                    @if (! empty($akses->detail['revisi'])) · Rev {{ $akses->detail['revisi'] }} @endif
+                                    @if ($akses->ip_address) · <span class="tabular-nums">{{ $akses->ip_address }}</span> @endif
+                                </p>
+                            </div>
+                        </div>
+                    @empty
+                        <p class="px-6 py-8 text-center text-sm text-slate-500">Belum ada yang mengakses berkas ini.</p>
+                    @endforelse
+                </section>
+            @endif
         </div>
     </div>
 

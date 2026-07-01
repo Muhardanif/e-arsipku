@@ -10,6 +10,9 @@ use App\Models\Dokumen;
 use App\Models\DokumenVersi;
 use App\Models\KategoriDokumen;
 use App\Models\Klaster;
+use App\Models\LogAktivitas;
+use App\Services\NotifikasiService;
+use App\Support\EkstraksiTeks;
 use App\Support\PenomoranDokumen;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -38,7 +41,9 @@ class DokumenController extends Controller
             ->when($filters['q'] ?? null, function ($query, $q) {
                 $query->where(function ($sub) use ($q) {
                     $sub->where('nomor_dokumen', 'like', "%{$q}%")
-                        ->orWhere('judul', 'like', "%{$q}%");
+                        ->orWhere('judul', 'like', "%{$q}%")
+                        // Pencarian penuh terhadap isi berkas (lapisan teks PDF / OCR).
+                        ->orWhereHas('versi', fn ($v) => $v->where('isi_teks', 'like', "%{$q}%"));
                 });
             })
             ->when($filters['kategori_id'] ?? null, fn ($query, $id) => $query->where('kategori_id', $id))
@@ -136,6 +141,14 @@ class DokumenController extends Controller
 
         $this->catatLog($adaBerkas ? 'tambah_dokumen' : 'tambah_draf', $dokumen, ['nomor_dokumen' => $dokumen->nomor_dokumen]);
 
+        app(NotifikasiService::class)->lupakanCache();
+
+        // Indeks isi berkas untuk pencarian penuh (di luar transaksi: berkas
+        // sudah tersimpan & OCR bisa memakan waktu).
+        if ($adaBerkas) {
+            EkstraksiTeks::indeks($dokumen->versi()->latest('id')->first());
+        }
+
         return redirect()->route('dokumen.show', $dokumen)
             ->with('success', $adaBerkas
                 ? 'Dokumen berhasil ditambahkan.'
@@ -192,6 +205,10 @@ class DokumenController extends Controller
 
         $this->catatLog('terbitkan_dokumen', $dokumen, ['nomor_dokumen' => $dokumen->nomor_dokumen]);
 
+        app(NotifikasiService::class)->lupakanCache();
+
+        EkstraksiTeks::indeks($dokumen->versi()->latest('id')->first());
+
         return redirect()->route('dokumen.show', $dokumen)
             ->with('success', "Dokumen {$dokumen->nomor_dokumen} berhasil diterbitkan.");
     }
@@ -207,7 +224,21 @@ class DokumenController extends Controller
             'review' => fn ($q) => $q->with('peninjau')->latest('tanggal_review'),
         ]);
 
-        return view('dokumen.show', compact('dokumen'));
+        // Riwayat akses berkas (siapa melihat/mengunduh) untuk dokumen ini.
+        // Log dicatat per versi (record_id = id versi), jadi telusuri lewat id versi.
+        $idVersi = $dokumen->versi->pluck('id');
+        $riwayatAkses = $idVersi->isEmpty()
+            ? collect()
+            : LogAktivitas::query()
+                ->with('user')
+                ->where('tabel', 'dokumen_versi')
+                ->whereIn('aksi', ['lihat_dokumen', 'unduh_dokumen'])
+                ->whereIn('record_id', $idVersi)
+                ->latest()
+                ->limit(20)
+                ->get();
+
+        return view('dokumen.show', compact('dokumen', 'riwayatAkses'));
     }
 
     public function edit(Request $request, Dokumen $dokumen): View
@@ -232,6 +263,8 @@ class DokumenController extends Controller
 
         $this->catatLog('ubah_dokumen', $dokumen, ['nomor_dokumen' => $dokumen->nomor_dokumen]);
 
+        app(NotifikasiService::class)->lupakanCache();
+
         return redirect()->route('dokumen.show', $dokumen)
             ->with('success', 'Dokumen berhasil diperbarui.');
     }
@@ -241,6 +274,9 @@ class DokumenController extends Controller
         $this->authorizeKelola();
 
         $nomor = $dokumen->nomor_dokumen;
+
+        // Apa pun cabang penghapusannya, kandidat notifikasi bisa berubah.
+        app(NotifikasiService::class)->lupakanCache();
 
         // Draf yang dibatalkan dihapus permanen (tidak punya berkas/peminjaman)
         // agar nomornya kembali menjadi celah dan dipakai ulang dokumen berikutnya.
@@ -272,7 +308,11 @@ class DokumenController extends Controller
         $ext = pathinfo($versi->file_path, PATHINFO_EXTENSION);
         $namaUnduh = Str::slug($versi->dokumen->nomor_dokumen.' rev '.$versi->kodeRevisi()).'.'.$ext;
 
-        $this->catatLog('unduh_dokumen', $versi, ['revisi' => $versi->kodeRevisi()]);
+        $this->catatLog('unduh_dokumen', $versi, [
+            'nomor_dokumen' => $versi->dokumen->nomor_dokumen,
+            'judul' => $versi->dokumen->judul,
+            'revisi' => $versi->kodeRevisi(),
+        ]);
 
         return Storage::disk('local')->download($versi->file_path, $namaUnduh);
     }
@@ -289,7 +329,11 @@ class DokumenController extends Controller
         $ext = pathinfo($versi->file_path, PATHINFO_EXTENSION);
         $nama = Str::slug($versi->dokumen->nomor_dokumen.' rev '.$versi->kodeRevisi()).'.'.$ext;
 
-        $this->catatLog('lihat_dokumen', $versi, ['revisi' => $versi->kodeRevisi()]);
+        $this->catatLog('lihat_dokumen', $versi, [
+            'nomor_dokumen' => $versi->dokumen->nomor_dokumen,
+            'judul' => $versi->dokumen->judul,
+            'revisi' => $versi->kodeRevisi(),
+        ]);
 
         return Storage::disk('local')->response($versi->file_path, $nama, [], 'inline');
     }

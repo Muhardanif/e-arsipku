@@ -28,7 +28,7 @@
 
     {{-- ══ Seksi 1: Klasifikasi & Penomoran ══════════════════════════ --}}
     <section class="space-y-4">
-        <p class="text-[11px] font-semibold uppercase tracking-wider text-slate-400">Klasifikasi &amp; Penomoran</p>
+        <p class="text-[11px] font-semibold uppercase tracking-wider text-slate-500">Klasifikasi &amp; Penomoran</p>
 
         <div class="grid grid-cols-1 gap-x-6 gap-y-5 sm:grid-cols-2">
             {{-- Kategori --}}
@@ -62,7 +62,7 @@
                         @endforeach
                     </select>
                     @unless ($isEdit)
-                        <p class="mt-1 text-xs text-slate-400">Berlaku saat berkas diunggah. Tanpa berkas, dokumen tersimpan sebagai <span class="font-medium text-amber-600">Draf</span>.</p>
+                        <p class="mt-1 text-xs text-slate-500">Berlaku saat berkas diunggah. Tanpa berkas, dokumen tersimpan sebagai <span class="font-medium text-amber-600">Draf</span>.</p>
                     @endunless
                 @endif
                 @error('status') <p class="mt-1 text-xs text-red-600">{{ $message }}</p> @enderror
@@ -76,7 +76,7 @@
                 <input type="text" id="nomor_dokumen" name="nomor_dokumen" value="{{ $val('nomor_dokumen') }}"
                     class="{{ $inputClass }} font-mono {{ $errors->has('nomor_dokumen') ? $errBorder : '' }}"
                     placeholder="mis. SOP/UKP/001/2024">
-                <p class="mt-1 text-xs text-slate-400">Ikuti konvensi puskesmas, contoh: SOP/UKP/001/2024</p>
+                <p class="mt-1 text-xs text-slate-500">Ikuti konvensi puskesmas, contoh: SOP/UKP/001/2024</p>
                 @error('nomor_dokumen') <p class="mt-1 text-xs text-red-600">{{ $message }}</p> @enderror
             </div>
         @else
@@ -162,8 +162,8 @@
     </section>
 
     {{-- ══ Seksi 2: Identitas Dokumen ════════════════════════════════ --}}
-    <section class="space-y-4 border-t border-slate-100 pt-6">
-        <p class="text-[11px] font-semibold uppercase tracking-wider text-slate-400">Identitas Dokumen</p>
+    <section class="space-y-4 border-t border-slate-100 pt-7">
+        <p class="text-[11px] font-semibold uppercase tracking-wider text-slate-500">Identitas Dokumen</p>
 
         <div>
             <label for="judul" class="{{ $labelClass }}">Judul Dokumen <span class="text-red-500">*</span></label>
@@ -183,8 +183,8 @@
     </section>
 
     {{-- ══ Seksi 3: Tanggal & Pengesahan ═════════════════════════════ --}}
-    <section class="space-y-4 border-t border-slate-100 pt-6">
-        <p class="text-[11px] font-semibold uppercase tracking-wider text-slate-400">Tanggal &amp; Pengesahan</p>
+    <section class="space-y-4 border-t border-slate-100 pt-7">
+        <p class="text-[11px] font-semibold uppercase tracking-wider text-slate-500">Tanggal &amp; Pengesahan</p>
 
         <div class="grid grid-cols-1 gap-x-6 gap-y-5 sm:grid-cols-2">
             {{-- Tanggal dokumen --}}
@@ -218,7 +218,7 @@
                 <label for="tanggal_berakhir" class="{{ $labelClass }}">Tanggal Berakhir</label>
                 <input type="date" id="tanggal_berakhir" name="tanggal_berakhir" value="{{ $val('tanggal_berakhir') }}"
                     class="{{ $inputClass }} {{ $errors->has('tanggal_berakhir') ? $errBorder : '' }}">
-                <p class="mt-1 text-xs text-slate-400">Kosongkan bila tidak ada masa berakhir.</p>
+                <p class="mt-1 text-xs text-slate-500">Kosongkan bila tidak ada masa berakhir.</p>
                 @error('tanggal_berakhir') <p class="mt-1 text-xs text-red-600">{{ $message }}</p> @enderror
             </div>
         </div>

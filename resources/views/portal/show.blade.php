@@ -16,7 +16,7 @@
 <div class="space-y-6">
     {{-- Kembali --}}
     <a href="{{ url()->previous() !== url()->current() ? url()->previous() : route('portal.index') }}"
-       class="inline-flex items-center gap-1.5 text-sm font-medium text-slate-500 transition hover:text-accent">
+       class="-mx-1 inline-flex items-center gap-1.5 rounded-md px-1 py-0.5 text-sm font-medium text-slate-500 transition hover:text-accent-active focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/40">
         @svg('heroicon-o-arrow-left', 'h-4 w-4')
         Kembali ke pencarian
     </a>
@@ -49,7 +49,7 @@
                         :gambar="$isGambarT"
                         judul="{{ $dokumen->nomor_dokumen }} — Rev {{ $versiTerkini->kodeRevisi() }}"
                         variant="primary">
-                        @svg('heroicon-o-eye', 'h-5 w-5')
+                        @svg('heroicon-o-document-magnifying-glass', 'h-5 w-5')
                         Buka Berkas
                     </x-file-viewer>
                     <x-button variant="outline" size="sm" :href="route('dokumen.versi.download', $versiTerkini)">
@@ -72,10 +72,10 @@
                     @if ($dokumen->klaster)
                         <div><dt class="text-xs text-slate-500">Klaster</dt><dd class="mt-0.5 text-sm text-foreground">{{ $dokumen->klaster->kode }} — {{ $dokumen->klaster->nama }}</dd></div>
                     @endif
-                    <div><dt class="text-xs text-slate-500">Tanggal Dokumen</dt><dd class="mt-0.5 text-sm text-foreground">{{ $dokumen->tanggal_dokumen?->translatedFormat('d F Y') ?: '—' }}</dd></div>
+                    <div><dt class="text-xs text-slate-500">Tanggal Dokumen</dt><dd class="mt-0.5 text-sm tabular-nums text-foreground">{{ $dokumen->tanggal_dokumen?->translatedFormat('d F Y') ?: '—' }}</dd></div>
                     <div><dt class="text-xs text-slate-500">Pengesah</dt><dd class="mt-0.5 text-sm text-foreground">{{ $dokumen->pengesah ?: '—' }}</dd></div>
-                    <div><dt class="text-xs text-slate-500">Tanggal Berlaku</dt><dd class="mt-0.5 text-sm text-foreground">{{ $dokumen->tanggal_berlaku?->translatedFormat('d F Y') ?: '—' }}</dd></div>
-                    <div><dt class="text-xs text-slate-500">Tanggal Berakhir</dt><dd class="mt-0.5 text-sm text-foreground">{{ $dokumen->tanggal_berakhir?->translatedFormat('d F Y') ?: '—' }}</dd></div>
+                    <div><dt class="text-xs text-slate-500">Tanggal Berlaku</dt><dd class="mt-0.5 text-sm tabular-nums text-foreground">{{ $dokumen->tanggal_berlaku?->translatedFormat('d F Y') ?: '—' }}</dd></div>
+                    <div><dt class="text-xs text-slate-500">Tanggal Berakhir</dt><dd class="mt-0.5 text-sm tabular-nums text-foreground">{{ $dokumen->tanggal_berakhir?->translatedFormat('d F Y') ?: '—' }}</dd></div>
                     <div class="sm:col-span-2"><dt class="text-xs text-slate-500">Deskripsi</dt><dd class="mt-0.5 whitespace-pre-line text-sm text-foreground">{{ $dokumen->deskripsi ?: '—' }}</dd></div>
                 </dl>
             </section>
@@ -102,9 +102,9 @@
                                             <span class="inline-flex items-center rounded-full bg-accent-soft px-2 py-0.5 text-[11px] font-semibold text-accent ring-1 ring-inset ring-accent/20">Terkini</span>
                                         @endif
                                     </div>
-                                    <p class="mt-0.5 text-xs font-medium text-slate-600">Tanggal revisi: {{ $v->tanggal_revisi?->translatedFormat('d M Y') ?? '—' }}</p>
+                                    <p class="mt-0.5 text-xs font-medium tabular-nums text-slate-600">Tanggal revisi: {{ $v->tanggal_revisi?->translatedFormat('d M Y') ?? '—' }}</p>
                                     <p class="text-xs text-slate-500">{{ $v->catatan_revisi ?: '—' }}</p>
-                                    <p class="mt-0.5 text-[11px] text-slate-400">{{ $fmtSize($v->ukuran_file) }} · diunggah {{ $v->created_at?->translatedFormat('d M Y') }}</p>
+                                    <p class="mt-0.5 text-[11px] tabular-nums text-slate-500">{{ $fmtSize($v->ukuran_file) }} · diunggah {{ $v->created_at?->translatedFormat('d M Y') }}</p>
                                 </div>
                             </div>
                             <div class="flex shrink-0 items-center gap-2">
@@ -136,7 +136,7 @@
                     <div class="flex justify-between gap-3"><dt class="text-slate-500">Status</dt><dd><x-badge :status="$dokumen->status" /></dd></div>
                     <div class="flex justify-between gap-3"><dt class="text-slate-500">Revisi terkini</dt><dd class="font-medium text-foreground">{{ $dokumen->kodeRevisiTerkini() ? 'Revisi '.$dokumen->kodeRevisiTerkini() : '—' }}</dd></div>
                     <div class="flex justify-between gap-3"><dt class="text-slate-500">Jumlah berkas</dt><dd class="text-foreground">{{ $dokumen->versi->count() }}</dd></div>
-                    <div class="flex justify-between gap-3"><dt class="text-slate-500">Terakhir diperbarui</dt><dd class="text-foreground">{{ $dokumen->updated_at?->translatedFormat('d M Y') }}</dd></div>
+                    <div class="flex justify-between gap-3"><dt class="text-slate-500">Terakhir diperbarui</dt><dd class="tabular-nums text-foreground">{{ $dokumen->updated_at?->translatedFormat('d M Y') }}</dd></div>
                 </dl>
             </section>
         </div>

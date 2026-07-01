@@ -22,13 +22,13 @@
     ];
     $tones = [
         'tambah'     => 'bg-accent-soft text-accent',
-        'ubah'       => 'bg-blue-100 text-blue-600',
+        'ubah'       => 'bg-slate-100 text-slate-600',
         'hapus'      => 'bg-red-100 text-red-600',
-        'unduh'      => 'bg-indigo-100 text-indigo-600',
+        'unduh'      => 'bg-slate-100 text-slate-600',
         'kembalikan' => 'bg-accent-soft text-accent',
         'reset'      => 'bg-amber-100 text-amber-600',
         'toggle'     => 'bg-slate-100 text-slate-600',
-        'cetak'      => 'bg-violet-100 text-violet-600',
+        'cetak'      => 'bg-slate-100 text-slate-600',
     ];
     $verbLabel = [
         'tambah' => 'Menambah', 'ubah' => 'Mengubah', 'hapus' => 'Menghapus',
@@ -49,12 +49,13 @@
 
 <div class="space-y-5">
     {{-- Filter --}}
-    <form method="GET" action="{{ route('log-aktivitas.index') }}" class="card flex flex-wrap items-end gap-3 p-4">
-        <div class="min-w-[16rem] flex-[2]">
+    <form method="GET" action="{{ route('log-aktivitas.index') }}"
+          class="card grid grid-cols-1 gap-3 p-4 sm:grid-cols-2 lg:grid-cols-6">
+        <div class="lg:col-span-2">
             <label class="label">Pencarian</label>
             <input type="text" name="q" value="{{ $filters['q'] ?? '' }}" placeholder="Aksi, detail, atau IP…" class="input">
         </div>
-        <div class="min-w-[13rem] flex-1">
+        <div>
             <label class="label">Jenis Aksi</label>
             <select name="aksi" class="input">
                 <option value="">Semua</option>
@@ -63,7 +64,7 @@
                 @endforeach
             </select>
         </div>
-        <div class="min-w-[12rem] flex-1">
+        <div>
             <label class="label">Pengguna</label>
             <select name="user_id" class="input">
                 <option value="">Semua</option>
@@ -72,15 +73,15 @@
                 @endforeach
             </select>
         </div>
-        <div class="min-w-[10rem] flex-1">
+        <div>
             <label class="label">Dari Tanggal</label>
             <input type="date" name="dari" value="{{ $filters['dari'] ?? '' }}" class="input" placeholder="Pilih tanggal">
         </div>
-        <div class="min-w-[10rem] flex-1">
+        <div>
             <label class="label">Sampai Tanggal</label>
             <input type="date" name="sampai" value="{{ $filters['sampai'] ?? '' }}" class="input" placeholder="Pilih tanggal">
         </div>
-        <div class="flex w-full items-end gap-2">
+        <div class="flex items-end gap-2 sm:col-span-2 lg:col-span-6">
             <x-button variant="primary" size="sm" type="submit">Terapkan</x-button>
             <x-button variant="outline" size="sm" :href="route('log-aktivitas.index')">Reset</x-button>
         </div>
@@ -90,7 +91,7 @@
         Menampilkan <span class="font-medium text-foreground">{{ $log->total() }}</span> catatan aktivitas.
     </p>
 
-    {{-- Timeline --}}
+    {{-- Daftar aktivitas --}}
     <div class="card overflow-hidden">
         @forelse ($log as $item)
             @php
@@ -111,13 +112,13 @@
                     </div>
                     <p class="mt-0.5 text-xs text-slate-500">
                         oleh <span class="font-medium text-slate-700">{{ $item->user?->nama ?? 'Sistem' }}</span>
-                        · {{ $item->created_at?->translatedFormat('d M Y, H:i') }}
+                        · <span class="font-medium tabular-nums text-slate-600">{{ $item->created_at?->translatedFormat('d M Y, H:i') }}</span>
                         @if ($item->ip_address) · <span class="tabular-nums">{{ $item->ip_address }}</span> @endif
                     </p>
                     @if (! empty($item->detail))
                         <div class="mt-1.5 flex flex-wrap gap-1.5">
                             @foreach ($item->detail as $k => $v)
-                                <span class="inline-flex items-center gap-1 rounded-md bg-accent-soft px-2 py-0.5 text-[11px] text-accent ring-1 ring-inset ring-accent/15">
+                                <span class="inline-flex items-center gap-1 rounded-md bg-slate-100 px-2 py-0.5 text-[11px] text-slate-600 ring-1 ring-inset ring-slate-500/15">
                                     <span class="font-medium">{{ $k }}:</span> {{ is_scalar($v) ? $v : json_encode($v) }}
                                 </span>
                             @endforeach

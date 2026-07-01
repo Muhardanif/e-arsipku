@@ -13,7 +13,7 @@
     {{-- Tombol pemicu (slot opsional; default: ikon mata + "Lihat") --}}
     <x-button :variant="$variant" :size="$size" type="button" x-on:click="open = true; loading = true" {{ $attributes }}>
         @if ($slot->isEmpty())
-            @svg('heroicon-o-eye', 'h-4 w-4')
+            @svg('heroicon-o-document-magnifying-glass', 'h-4 w-4')
             Lihat
         @else
             {{ $slot }}

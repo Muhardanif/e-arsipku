@@ -15,7 +15,7 @@
     {{-- Header actions --}}
     <div class="flex flex-wrap items-center justify-between gap-3">
         <p class="text-sm text-slate-500">
-            Menampilkan <span class="font-medium text-foreground">{{ $dokumen->total() }}</span> dokumen.
+            Menampilkan <span class="font-medium tabular-nums text-foreground">{{ $dokumen->total() }}</span> dokumen.
         </p>
         @if ($bisaKelola)
             <x-button variant="primary" size="sm" :href="route('dokumen.create')" data-modal data-modal-title="Tambah Dokumen">
@@ -30,7 +30,7 @@
           class="card grid grid-cols-1 gap-3 p-4 sm:grid-cols-2 lg:grid-cols-6">
         <div class="lg:col-span-2">
             <label class="label">Pencarian</label>
-            <input type="text" name="q" value="{{ $filters['q'] ?? '' }}" placeholder="Nomor atau judul…" class="input">
+            <input type="text" name="q" value="{{ $filters['q'] ?? '' }}" placeholder="Nomor, judul, atau isi dokumen…" class="input">
         </div>
         <div>
             <label class="label">Kategori</label>
@@ -80,30 +80,32 @@
                         <th class="px-5 py-3 text-right">Aksi</th>
                     </tr>
                 </thead>
-                <tbody class="divide-y divide-slate-50">
+                <tbody class="divide-y divide-slate-100">
                     @forelse ($dokumen as $dok)
                         <tr class="transition hover:bg-slate-50/60">
-                            <td class="px-5 py-3.5">
+                            <td class="px-5 py-3.5 align-top">
                                 <a href="{{ route('dokumen.show', $dok) }}" class="font-medium text-foreground hover:text-accent">{{ $dok->judul }}</a>
                                 <p class="text-xs text-slate-500">{{ $dok->nomor_dokumen }}</p>
                             </td>
-                            <td class="px-5 py-3.5 text-slate-600">{{ $dok->kategori?->kode }}</td>
-                            <td class="px-5 py-3.5 tabular-nums text-slate-600">{{ $dok->tanggal_dokumen?->translatedFormat('d M Y') }}</td>
-                            <td class="px-5 py-3.5">
+                            <td class="px-5 py-3.5 align-top text-slate-600">
+                                <span title="{{ $dok->kategori?->nama }}">{{ $dok->kategori?->kode }}</span>
+                            </td>
+                            <td class="px-5 py-3.5 align-top tabular-nums text-slate-600">{{ $dok->tanggal_dokumen?->translatedFormat('d M Y') }}</td>
+                            <td class="px-5 py-3.5 align-top">
                                 <x-badge :status="$dok->status" />
                                 @if (in_array($dok->statusReview(), ['segera', 'lewat'], true))
                                     <div class="mt-1"><x-review-status :dokumen="$dok" compact /></div>
                                 @endif
                             </td>
-                            <td class="px-5 py-3.5">
-                                <div class="flex items-center justify-end gap-1">
+                            <td class="px-5 py-3.5 align-top">
+                                <div class="flex items-center justify-end gap-1.5">
                                     <a href="{{ route('dokumen.show', $dok) }}" title="Lihat"
-                                       class="rounded-md p-1.5 text-slate-400 transition hover:bg-slate-100 hover:text-slate-700">
-                                        @svg('heroicon-o-eye', 'h-5 w-5')
+                                       class="rounded-md p-2 text-slate-400 transition hover:bg-slate-100 hover:text-slate-700">
+                                        @svg('heroicon-o-document-magnifying-glass', 'h-5 w-5')
                                     </a>
                                     @if ($bisaKelola)
                                         <a href="{{ route('dokumen.edit', $dok) }}" data-modal data-modal-title="Ubah Dokumen" title="Ubah"
-                                           class="rounded-md p-1.5 text-slate-400 transition hover:bg-slate-100 hover:text-accent">
+                                           class="rounded-md p-2 text-slate-400 transition hover:bg-slate-100 hover:text-accent">
                                             @svg('heroicon-o-pencil', 'h-5 w-5')
                                         </a>
                                         <form method="POST" action="{{ route('dokumen.destroy', $dok) }}" class="inline"
@@ -112,7 +114,7 @@
                                             @csrf
                                             @method('DELETE')
                                             <button type="submit" title="Hapus"
-                                                class="rounded-md p-1.5 text-slate-400 transition hover:bg-red-50 hover:text-red-600">
+                                                class="rounded-md p-2 text-slate-400 transition hover:bg-red-50 hover:text-red-600">
                                                 @svg('heroicon-o-trash', 'h-5 w-5')
                                             </button>
                                         </form>

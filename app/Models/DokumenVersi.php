@@ -17,6 +17,9 @@ class DokumenVersi extends Model
         'file_path',
         'ukuran_file',
         'diunggah_oleh',
+        'isi_teks',
+        'metode_ekstraksi',
+        'teks_diindeks_pada',
     ];
 
     protected function casts(): array
@@ -25,6 +28,7 @@ class DokumenVersi extends Model
             'nomor_versi' => 'integer',
             'tanggal_revisi' => 'date',
             'ukuran_file' => 'integer',
+            'teks_diindeks_pada' => 'datetime',
         ];
     }
 

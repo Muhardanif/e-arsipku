@@ -18,7 +18,7 @@
 <div x-data="{ open: false }" class="relative">
     {{-- Tombol bell (styling header tidak diubah) --}}
     <button type="button" @click="open = !open" :aria-expanded="open"
-        class="relative w-10 h-10 flex items-center justify-center rounded-full border border-gray-200 text-gray-500 hover:bg-gray-100 transition"
+        class="relative w-10 h-10 flex items-center justify-center rounded-full border border-border-default text-slate-500 hover:bg-slate-100 transition"
         aria-label="Notifikasi{{ $count > 0 ? ' ('.$count.' belum dibaca)' : '' }}">
         @svg('heroicon-o-bell', 'h-[22px] w-[22px]')
         @if ($count > 0)
@@ -30,10 +30,10 @@
 
     {{-- Dropdown --}}
     <div x-show="open" x-cloak @click.outside="open = false" x-transition.origin.top.right
-        class="absolute right-0 mt-2.5 w-[22rem] max-w-[calc(100vw-2rem)] origin-top-right rounded-lg border border-gray-200 bg-white shadow-pop">
+        class="absolute right-0 mt-2.5 w-[22rem] max-w-[calc(100vw-2rem)] origin-top-right rounded-lg border border-border-default bg-white shadow-pop">
 
         {{-- Header dropdown --}}
-        <div class="flex items-center justify-between gap-2 border-b border-gray-100 px-4 py-3">
+        <div class="flex items-center justify-between gap-2 border-b border-slate-100 px-4 py-3">
             <div class="min-w-0">
                 <p class="text-sm font-semibold text-foreground">Notifikasi</p>
                 <p class="text-xs text-muted">{{ $count > 0 ? $count.' perlu perhatian' : 'Semua terpantau aman' }}</p>
@@ -60,7 +60,7 @@
                         : ($n['sisa'] === 0 ? 'Jatuh tempo hari ini' : $n['sisa'].' hari lagi');
                     $jenisTeks = $isExp ? 'Masa berlaku' : 'Review berkala';
                 @endphp
-                <div class="group relative flex gap-3 px-4 py-3 transition-colors hover:bg-gray-50">
+                <div class="group relative flex gap-3 px-4 py-3 transition-colors hover:bg-slate-50">
                     <span class="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-full {{ $isExp ? 'bg-red-50 text-red-600' : 'bg-accent-soft text-accent' }}">
                         @svg($isExp ? 'heroicon-o-calendar-days' : 'heroicon-o-arrow-path', 'h-4 w-4')
                     </span>
@@ -84,7 +84,7 @@
                         <input type="hidden" name="tanggal_acuan" value="{{ $n['acuan']->toDateString() }}">
                         <input type="hidden" name="tingkat" value="{{ $n['tingkat'] }}">
                         <button type="submit" aria-label="Tandai sudah dibaca" title="Tandai sudah dibaca"
-                            class="rounded-md p-1 text-gray-300 transition hover:bg-gray-200 hover:text-gray-600">
+                            class="rounded-md p-1 text-slate-300 transition hover:bg-slate-200 hover:text-slate-600">
                             @svg('heroicon-o-check', 'h-4 w-4')
                         </button>
                     </form>
@@ -101,7 +101,7 @@
         </div>
 
         @if ($items->isNotEmpty())
-            <div class="border-t border-gray-100 px-4 py-2.5 text-center">
+            <div class="border-t border-slate-100 px-4 py-2.5 text-center">
                 <a href="{{ route('laporan.kadaluarsa') }}" class="text-xs font-medium text-accent hover:underline">
                     Lihat laporan kedaluwarsa &amp; review
                 </a>

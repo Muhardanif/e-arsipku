@@ -46,6 +46,8 @@ class PenggunaController extends Controller
     {
         $data = $request->validated();
         $data['aktif'] = $request->boolean('aktif');
+        // Akun baru wajib ganti kata sandi sendiri saat login pertama.
+        $data['harus_ganti_password'] = true;
 
         $pengguna = User::create($data);
 
@@ -83,6 +85,9 @@ class PenggunaController extends Controller
         // Kosongkan password agar tidak menimpa bila tidak diisi
         if (empty($data['password'])) {
             unset($data['password']);
+        } elseif (! $pengguna->is($request->user())) {
+            // Kata sandi diganti admin untuk orang lain → wajib ganti saat login.
+            $data['harus_ganti_password'] = true;
         }
 
         $pengguna->update($data);
@@ -99,7 +104,11 @@ class PenggunaController extends Controller
             'password' => ['required', 'string', 'min:6', 'confirmed'],
         ], [], ['password' => 'kata sandi baru']);
 
-        $pengguna->update(['password' => $validated['password']]);
+        $pengguna->update([
+            'password' => $validated['password'],
+            // Pengguna wajib mengganti kata sandi sementara ini saat login berikutnya.
+            'harus_ganti_password' => true,
+        ]);
 
         $this->catatLog('reset_password', $pengguna, ['username' => $pengguna->username]);
 

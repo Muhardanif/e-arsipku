@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\AuditAksesController;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\DokumenController;
@@ -13,6 +14,7 @@ use App\Http\Controllers\NotifikasiController;
 use App\Http\Controllers\PeminjamanController;
 use App\Http\Controllers\PenggunaController;
 use App\Http\Controllers\PortalController;
+use App\Http\Controllers\ProfilController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', fn () => auth()->check()
@@ -30,8 +32,15 @@ Route::post('/logout', [AuthController::class, 'logout'])
     ->name('logout');
 
 // Area terproteksi
-Route::middleware('auth')->group(function () {
+Route::middleware(['auth', 'harus.ganti.password'])->group(function () {
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
+
+    // Ganti kata sandi sendiri (semua role). Juga tujuan paksaan bila
+    // akun ditandai harus_ganti_password.
+    Route::get('profil/password', [ProfilController::class, 'editPassword'])
+        ->name('profil.password.edit');
+    Route::patch('profil/password', [ProfilController::class, 'updatePassword'])
+        ->name('profil.password.update');
 
     // Portal Pencarian Dokumen — tampilan front-end bersih (semua role).
     // Kepala puskesmas/staf diarahkan ke sini setelah login.
@@ -106,6 +115,9 @@ Route::middleware('auth')->group(function () {
 
         // Log aktivitas sistem
         Route::get('log-aktivitas', [LogAktivitasController::class, 'index'])->name('log-aktivitas.index');
+
+        // Audit akses berkas — siapa melihat/mengunduh dokumen apa
+        Route::get('audit-akses', [AuditAksesController::class, 'index'])->name('audit-akses.index');
 
         Route::get('pengguna/{pengguna}/reset-password', [PenggunaController::class, 'resetPasswordForm'])
             ->name('pengguna.reset-password.form');

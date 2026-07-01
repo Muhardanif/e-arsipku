@@ -10,7 +10,7 @@
         'kadaluarsa'   => 'bg-red-50 text-red-700 ring-red-600/20',
         'dicabut'      => 'bg-slate-100 text-slate-600 ring-slate-500/20',
         // Status peminjaman
-        'dipinjam'     => 'bg-amber-50 text-amber-700 ring-amber-600/20',
+        'dipinjam'     => 'bg-sky-50 text-sky-700 ring-sky-600/20',
         'dikembalikan' => 'bg-accent-soft text-accent ring-accent/20',
     ];
 
@@ -19,7 +19,7 @@
         'berlaku'      => 'bg-accent',
         'kadaluarsa'   => 'bg-red-500',
         'dicabut'      => 'bg-slate-400',
-        'dipinjam'     => 'bg-amber-500',
+        'dipinjam'     => 'bg-sky-500',
         'dikembalikan' => 'bg-accent',
     ];
 

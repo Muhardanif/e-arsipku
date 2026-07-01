@@ -48,9 +48,14 @@
                     <span class="flex h-12 w-12 items-center justify-center rounded-2xl {{ $t['bg'] }} {{ $t['text'] }} ring-1 ring-black/[0.03]">
                         @svg('heroicon-o-'.$card['icon'], 'h-6 w-6')
                     </span>
+                    @isset($card['url'])
+                        <span class="opacity-0 transition-opacity duration-200 group-hover:opacity-100 motion-reduce:transition-none">
+                            @svg('heroicon-o-arrow-up-right', 'h-4 w-4 text-slate-400')
+                        </span>
+                    @endisset
                 </div>
-                <p class="mt-4 text-3xl font-bold tabular-nums tracking-tight text-foreground">{{ number_format($card['value'], 0, ',', '.') }}</p>
-                <p class="mt-1 text-sm font-medium text-muted">{{ $card['label'] }}</p>
+                <p class="mt-3 text-3xl font-bold tabular-nums tracking-tight text-foreground">{{ number_format($card['value'], 0, ',', '.') }}</p>
+                <p class="mt-0.5 text-sm font-medium text-muted">{{ $card['label'] }}</p>
             </{{ $tag }}>
         @endforeach
     </div>
@@ -68,7 +73,7 @@
                 <a href="{{ route('laporan.review') }}" class="text-sm font-semibold text-accent transition hover:text-accent-hover">Lihat semua →</a>
             </div>
             @foreach ($dokumenPerluReview as $dok)
-                <a href="{{ route('dokumen.show', $dok) }}" class="flex items-center justify-between gap-4 border-b border-slate-50 px-5 py-3 transition last:border-0 hover:bg-slate-50/70">
+                <a href="{{ route('dokumen.show', $dok) }}" class="flex items-center justify-between gap-4 border-b border-slate-50 px-5 py-3.5 transition last:border-0 hover:bg-slate-50/70">
                     <div class="min-w-0">
                         <p class="truncate text-sm font-medium text-foreground">{{ $dok->judul }}</p>
                         <p class="truncate text-xs text-slate-500">{{ $dok->nomor_dokumen }} · jatuh tempo {{ $dok->jatuhTempoReview()?->translatedFormat('d M Y') }}</p>
@@ -84,13 +89,13 @@
         <section class="card p-5 lg:col-span-2">
             <h2 class="text-sm font-semibold text-foreground">Dokumen per Kategori</h2>
             <p class="text-xs text-slate-500">Jumlah dokumen di tiap kategori</p>
-            <div data-chart="kategori" data-config='@json(['labels' => $chartKategori['labels'], 'data' => $chartKategori['data']])' class="mt-2"></div>
+            <div data-chart="kategori" data-config='@json(['labels' => $chartKategori['labels'], 'data' => $chartKategori['data']])' class="mt-2 min-h-[260px]"></div>
         </section>
 
         <section class="card p-5">
             <h2 class="text-sm font-semibold text-foreground">Komposisi Status Dokumen</h2>
             <p class="text-xs text-slate-500">Seluruh dokumen</p>
-            <div data-chart="status" data-config='@json($chartStatus)' class="mt-2"></div>
+            <div data-chart="status" data-config='@json($chartStatus)' class="mt-2 min-h-[260px]"></div>
         </section>
     </div>
 
@@ -106,7 +111,7 @@
             <a href="{{ url('/dokumen') }}" class="text-sm font-semibold text-accent transition hover:text-accent-hover">Lihat semua →</a>
         </div>
         @forelse ($dokumenTerbaru as $dok)
-            <a href="{{ route('dokumen.show', $dok) }}" class="flex items-center justify-between gap-4 border-b border-slate-50 px-5 py-3 transition hover:bg-slate-50/70 last:border-0">
+            <a href="{{ route('dokumen.show', $dok) }}" class="flex items-center justify-between gap-4 border-b border-slate-50 px-5 py-3.5 transition hover:bg-slate-50/70 last:border-0">
                 <div class="min-w-0">
                     <p class="truncate text-sm font-medium text-foreground">{{ $dok->judul }}</p>
                     <p class="truncate text-xs text-slate-500">{{ $dok->nomor_dokumen }} · {{ $dok->kategori?->nama }}</p>

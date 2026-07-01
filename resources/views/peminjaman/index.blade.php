@@ -19,7 +19,7 @@
         <nav class="inline-flex rounded-xl border border-border-default bg-white p-1 text-sm shadow-xs">
             @foreach ($tabs as $key => $label)
                 <a href="{{ route('peminjaman.index', ['status' => $key]) }}"
-                   class="rounded-lg px-3.5 py-1.5 font-semibold transition {{ $status === $key ? 'bg-gradient-to-br from-accent to-indigo text-white shadow-accent' : 'text-slate-600 hover:bg-slate-50' }}">
+                   class="rounded-lg px-3.5 py-1.5 font-semibold transition {{ $status === $key ? 'bg-accent text-white shadow-accent' : 'text-slate-600 hover:bg-slate-50' }}">
                     {{ $label }}
                 </a>
             @endforeach
@@ -54,18 +54,20 @@
                                 <p class="text-xs text-slate-500">{{ $p->dokumen?->nomor_dokumen }}</p>
                             </td>
                             <td class="px-5 py-3.5 text-slate-700">{{ $p->peminjam_nama ?? $p->peminjam?->nama ?? '—' }}</td>
-                            <td class="px-5 py-3.5 text-slate-600">{{ $p->tujuan }}</td>
+                            <td class="px-5 py-3.5 text-slate-600">
+                                <div class="max-w-[16rem] truncate" title="{{ $p->tujuan }}">{{ $p->tujuan }}</div>
+                            </td>
                             <td class="px-5 py-3.5 tabular-nums text-slate-600">{{ $p->tanggal_pinjam?->translatedFormat('d M Y') }}</td>
                             <td class="px-5 py-3.5 tabular-nums {{ $terlambat ? 'font-medium text-red-600' : 'text-slate-600' }}">
                                 {{ $p->tanggal_kembali_rencana?->translatedFormat('d M Y') }}
                                 @if ($terlambat)
-                                    <span class="ml-1 inline-flex items-center rounded-full bg-red-100 px-2 py-0.5 text-[11px] font-medium text-red-700">Terlambat</span>
+                                    <span class="ml-1 inline-flex items-center rounded-full bg-red-100 px-2 py-0.5 text-[11px] font-medium text-red-700 ring-1 ring-inset ring-red-600/20">Terlambat</span>
                                 @endif
                             </td>
                             <td class="px-5 py-3.5">
                                 @if ($p->status === 'dikembalikan')
                                     <x-badge status="dikembalikan" />
-                                    <p class="mt-0.5 text-[11px] text-slate-400">{{ $p->tanggal_kembali_aktual?->translatedFormat('d M Y') }}</p>
+                                    <p class="mt-0.5 text-[11px] text-slate-500">{{ $p->tanggal_kembali_aktual?->translatedFormat('d M Y') }}</p>
                                 @else
                                     <x-badge status="dipinjam" />
                                 @endif
@@ -82,7 +84,7 @@
                                         </x-button>
                                     </form>
                                 @else
-                                    <span class="text-xs text-slate-400">—</span>
+                                    <span class="text-xs text-slate-500">—</span>
                                 @endif
                             </td>
                         </tr>

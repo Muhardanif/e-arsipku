@@ -94,6 +94,11 @@
                     Pengguna
                 </x-nav-link>
 
+                <x-nav-link href="{{ url('/audit-akses') }}" :active="request()->is('audit-akses*')">
+                    <x-slot:icon>@svg('heroicon-o-finger-print', 'h-5 w-5')</x-slot:icon>
+                    Audit Akses
+                </x-nav-link>
+
                 <x-nav-link href="{{ url('/log-aktivitas') }}" :active="request()->is('log-aktivitas*')">
                     <x-slot:icon>@svg('heroicon-o-clock', 'h-5 w-5')</x-slot:icon>
                     Log Aktivitas
@@ -128,16 +133,18 @@
         <header class="flex items-center gap-3 rounded-xl bg-white px-4 py-3 shadow-sm sm:px-5">
             {{-- Toggle sidebar — mobile (buka drawer) --}}
             <button type="button" @click="sidebarOpen = true"
-                class="w-10 h-10 flex shrink-0 items-center justify-center rounded-lg border border-gray-200 text-gray-500 hover:bg-gray-100 transition lg:hidden"
+                class="w-10 h-10 flex shrink-0 items-center justify-center rounded-lg border border-border-default text-slate-500 transition hover:bg-slate-100 focus:outline-none focus-visible:ring-2 focus-visible:ring-accent/40 lg:hidden"
                 aria-label="Buka menu">
                 @svg('heroicon-o-bars-3', 'h-6 w-6')
             </button>
 
             {{-- Toggle sidebar — desktop (lipat / buka) --}}
             <button type="button" @click="collapsed = !collapsed"
-                class="w-10 h-10 hidden shrink-0 items-center justify-center rounded-lg border border-gray-200 text-gray-500 hover:bg-gray-100 transition lg:flex"
+                class="w-10 h-10 hidden shrink-0 items-center justify-center rounded-lg border border-border-default text-slate-500 transition hover:bg-slate-100 focus:outline-none focus-visible:ring-2 focus-visible:ring-accent/40 lg:flex"
                 :aria-pressed="collapsed" aria-label="Lipat menu">
-                @svg('heroicon-o-bars-3', 'h-6 w-6')
+                <span class="transition-transform duration-200 motion-reduce:transition-none" :class="collapsed && 'rotate-180'">
+                    @svg('heroicon-o-chevron-double-left', 'h-5 w-5')
+                </span>
             </button>
 
             {{-- Info halaman --}}
@@ -152,42 +159,47 @@
                 <x-notif-bell :count="$notifCount" :items="$notifItems" />
 
                 {{-- Divider vertikal --}}
-                <div class="w-px h-6 bg-gray-200"></div>
+                <div class="w-px h-6 bg-border-default"></div>
 
                 {{-- Menu pengguna --}}
                 <div x-data="{ open: false }" class="relative">
                     <button type="button" @click="open = !open" :aria-expanded="open"
-                        class="flex items-center gap-2 rounded-lg border border-gray-200 hover:bg-gray-100 transition pl-1 pr-3 py-1 focus:outline-none focus-visible:ring-2 focus-visible:ring-accent/40">
+                        class="flex items-center gap-2 rounded-lg border border-border-default hover:bg-slate-100 transition pl-1 pr-3 py-1 focus:outline-none focus-visible:ring-2 focus-visible:ring-accent/40">
                         <span class="w-9 h-9 rounded-full bg-accent text-white flex items-center justify-center text-xs font-medium">
                             {{ strtoupper(substr($user->nama, 0, 2)) }}
                         </span>
                         <span class="hidden text-left leading-tight sm:block">
                             <span class="block font-medium text-sm text-foreground">{{ $user->nama }}</span>
-                            <span class="block text-xs text-gray-500">{{ $roleLabel }}</span>
+                            <span class="block text-xs text-slate-500">{{ $roleLabel }}</span>
                         </span>
                         <span class="hidden transition-transform duration-200 sm:block" :class="open && 'rotate-180'">
-                            @svg('heroicon-o-chevron-down', 'h-4 w-4 text-gray-400')
+                            @svg('heroicon-o-chevron-down', 'h-4 w-4 text-slate-400')
                         </span>
                     </button>
 
                     <div x-show="open" x-cloak @click.outside="open = false"
                         x-transition.origin.top.right
-                        class="absolute right-0 mt-2.5 w-60 origin-top-right rounded-lg border border-gray-200 bg-white py-1.5 shadow-pop">
-                        <div class="flex items-center gap-3 border-b border-gray-100 px-4 py-3">
+                        class="absolute right-0 mt-2.5 w-60 origin-top-right rounded-lg border border-border-default bg-white py-1.5 shadow-pop">
+                        <div class="flex items-center gap-3 border-b border-slate-100 px-4 py-3">
                             <span class="w-9 h-9 rounded-full bg-accent text-white flex items-center justify-center text-xs font-medium">
                                 {{ strtoupper(substr($user->nama, 0, 2)) }}
                             </span>
                             <div class="min-w-0">
                                 <p class="truncate text-sm font-semibold text-foreground">{{ $user->nama }}</p>
-                                <p class="truncate text-xs text-gray-500">{{ '@'.$user->username }} · {{ $roleLabel }}</p>
+                                <p class="truncate text-xs text-slate-500">{{ '@'.$user->username }} · {{ $roleLabel }}</p>
                             </div>
                         </div>
+                        <a href="{{ route('profil.password.edit') }}"
+                            class="mt-1 flex w-full items-center gap-2.5 rounded-md px-4 py-2.5 text-sm text-slate-700 transition-colors duration-150 hover:bg-slate-50">
+                            @svg('heroicon-o-key', 'h-5 w-5 text-slate-400')
+                            Ganti Kata Sandi
+                        </a>
                         <form method="POST" action="{{ route('logout') }}"
                               data-confirm="Keluar dari sesi E-ARSIPKU?" data-confirm-btn="Ya, Keluar" data-confirm-icon="question">
                             @csrf
                             <button type="submit"
-                                class="mt-1 flex w-full items-center gap-2.5 rounded-md px-4 py-2.5 text-sm text-slate-700 transition-colors duration-150 hover:bg-gray-50">
-                                @svg('heroicon-o-arrow-left-end-on-rectangle', 'h-5 w-5 text-gray-400')
+                                class="flex w-full items-center gap-2.5 rounded-md px-4 py-2.5 text-sm text-slate-700 transition-colors duration-150 hover:bg-slate-50">
+                                @svg('heroicon-o-arrow-left-end-on-rectangle', 'h-5 w-5 text-slate-400')
                                 Keluar
                             </button>
                         </form>

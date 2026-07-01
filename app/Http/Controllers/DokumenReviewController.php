@@ -6,6 +6,7 @@ use App\Concerns\CatatAktivitas;
 use App\Http\Requests\StoreDokumenReviewRequest;
 use App\Models\Dokumen;
 use App\Models\DokumenReview;
+use App\Services\NotifikasiService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\DB;
 use Illuminate\View\View;
@@ -53,6 +54,9 @@ class DokumenReviewController extends Controller
             'nomor_dokumen' => $dokumen->nomor_dokumen,
             'hasil' => $data['hasil'],
         ]);
+
+        // Siklus review di-reset → dokumen ini keluar dari kandidat notifikasi.
+        app(NotifikasiService::class)->lupakanCache();
 
         $pesan = $data['hasil'] === 'perlu_revisi'
             ? 'Review dicatat. Dokumen ditandai perlu revisi — silakan unggah revisi baru.'

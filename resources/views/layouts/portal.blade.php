@@ -16,11 +16,18 @@
     $roleLabel = ['admin' => 'Administrator', 'petugas' => 'Petugas', 'staf' => 'Staf'][$user->role] ?? $user->role;
 @endphp
 
+{{-- Lewati navigasi — bantuan pengguna keyboard / pembaca layar --}}
+<a href="#konten-utama"
+   class="sr-only focus:not-sr-only focus:absolute focus:left-4 focus:top-4 focus:z-50 focus:rounded-lg focus:bg-white focus:px-4 focus:py-2 focus:text-sm focus:font-semibold focus:text-accent focus:shadow-pop focus:outline-none focus:ring-2 focus:ring-accent/40">
+    Lewati ke konten
+</a>
+
 {{-- ── Topbar bersih ───────────────────────────────────────────────── --}}
 <header class="sticky top-0 z-30 border-b border-border-default/80 bg-white/85 backdrop-blur-xl">
     <div class="mx-auto flex h-16 max-w-6xl items-center gap-4 px-4 sm:px-6 lg:px-8">
         {{-- Brand --}}
-        <a href="{{ route('portal.index') }}" class="flex items-center gap-3">
+        <a href="{{ route('portal.index') }}"
+           class="flex items-center gap-3 rounded-xl transition focus:outline-none focus-visible:ring-2 focus-visible:ring-accent/40 focus-visible:ring-offset-2">
             <span class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-accent-soft ring-1 ring-accent/10">
                 <img src="{{ asset('images/logo-puskesmas.png') }}" alt="Logo Puskesmas Driyorejo" class="h-7 w-7 object-contain">
             </span>
@@ -69,6 +76,11 @@
                         Panel Admin
                     </a>
                 @endif
+                <a href="{{ route('profil.password.edit') }}"
+                   class="flex w-full items-center gap-2.5 px-4 py-2.5 text-sm text-slate-700 transition hover:bg-slate-50">
+                    @svg('heroicon-o-key', 'h-5 w-5 text-slate-400')
+                    Ganti Kata Sandi
+                </a>
                 <form method="POST" action="{{ route('logout') }}"
                       data-confirm="Keluar dari sesi E-ARSIPKU?" data-confirm-btn="Ya, Keluar" data-confirm-icon="question">
                     @csrf
@@ -84,7 +96,7 @@
 </header>
 
 {{-- ── Konten ──────────────────────────────────────────────────────── --}}
-<main class="mx-auto w-full max-w-6xl flex-1 px-4 py-8 sm:px-6 lg:px-8">
+<main id="konten-utama" tabindex="-1" class="mx-auto w-full max-w-6xl flex-1 px-4 py-8 focus:outline-none sm:px-6 lg:px-8">
     @php $flashType = collect(['success', 'error', 'warning', 'info'])->first(fn ($t) => session()->has($t)); @endphp
     @if ($flashType)
         <div id="flash-data" data-type="{{ $flashType }}" data-message="{{ session($flashType) }}" hidden></div>
@@ -95,7 +107,7 @@
 
 {{-- ── Footer ──────────────────────────────────────────────────────── --}}
 <footer class="border-t border-border-default/70 py-5">
-    <div class="mx-auto flex max-w-6xl flex-col items-center justify-between gap-2 px-4 text-xs text-slate-400 sm:flex-row sm:px-6 lg:px-8">
+    <div class="mx-auto flex max-w-6xl flex-col items-center justify-between gap-2 px-4 text-xs text-slate-500 sm:flex-row sm:px-6 lg:px-8">
         <p>E-ARSIPKU — Sistem Pencatatan Arsip Dokumen Puskesmas</p>
         <p>Puskesmas Driyorejo · Pemerintah Kabupaten Gresik</p>
     </div>

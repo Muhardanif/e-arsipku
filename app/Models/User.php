@@ -25,6 +25,7 @@ class User extends Authenticatable
         'role',
         'jabatan',
         'aktif',
+        'harus_ganti_password',
     ];
 
     /**
@@ -47,6 +48,7 @@ class User extends Authenticatable
         return [
             'password' => 'hashed',
             'aktif' => 'boolean',
+            'harus_ganti_password' => 'boolean',
         ];
     }
 

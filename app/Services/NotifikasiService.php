@@ -7,6 +7,7 @@ use App\Models\NotifikasiDibaca;
 use App\Models\User;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\Cache;
 
 /**
  * Notifikasi in-app dihitung REAL-TIME dari tabel dokumen (tanpa scheduler).
@@ -33,6 +34,9 @@ class NotifikasiService
 
     /** Cache hasil per-user dalam satu request (composer memanggil 2x). */
     private array $cache = [];
+
+    /** Masa simpan cache kandidat notifikasi lintas-request (menit). */
+    private const CACHE_TTL_MENIT = 60;
 
     /**
      * Koleksi notifikasi aktif (belum dibaca) untuk user, paling mendesak di atas.
@@ -64,6 +68,30 @@ class NotifikasiService
     }
 
     /**
+     * Kunci cache kandidat notifikasi per pengguna.
+     */
+    public static function cacheKey(int $userId): string
+    {
+        return "notif_expiry_user_{$userId}";
+    }
+
+    /**
+     * Invalidasi cache kandidat notifikasi untuk seluruh penerima (admin & petugas).
+     * Dipanggil setiap kali data dokumen berubah (tambah/ubah/hapus/revisi/review)
+     * agar perhitungan expiry/review tidak basi.
+     */
+    public function lupakanCache(): void
+    {
+        User::query()
+            ->whereIn('role', ['admin', 'petugas'])
+            ->pluck('id')
+            ->each(fn ($id) => Cache::forget(self::cacheKey((int) $id)));
+
+        // Bersihkan juga cache per-request agar perhitungan berikutnya segar.
+        $this->cache = [];
+    }
+
+    /**
      * @return Collection<int, array>
      */
     private function kandidat(User $user): Collection
@@ -77,27 +105,10 @@ class NotifikasiService
             return $this->cache[$user->id] = collect();
         }
 
-        $batas = now()->startOfDay()->addDays(self::AMBANG_HARI)->toDateString();
-
-        // (a) Dokumen akan / sudah kedaluwarsa
-        $kedaluwarsa = Dokumen::query()
-            ->where('status', 'berlaku')
-            ->whereNotNull('tanggal_berakhir')
-            ->whereDate('tanggal_berakhir', '<=', $batas)
-            ->orderBy('tanggal_berakhir')
-            ->limit(self::BATAS_QUERY)
-            ->get(['id', 'nomor_dokumen', 'judul', 'tanggal_berakhir'])
-            ->map(fn (Dokumen $d) => $this->bentuk($d, 'kedaluwarsa', $d->tanggal_berakhir));
-
-        // (b) Dokumen perlu review (jatuh tempo tinjauan ≤ ambang atau lewat)
-        $review = Dokumen::butuhTinjauan(self::AMBANG_HARI)
-            ->with('kategori')
-            ->limit(self::BATAS_QUERY)
-            ->get()
-            ->map(fn (Dokumen $d) => $this->bentuk($d, 'review', $d->jatuhTempoReview()))
-            ->filter();
-
-        $semua = $kedaluwarsa->concat($review);
+        // Kandidat dokumen (expiry/review) di-cache lintas-request. Status baca
+        // diterapkan tiap request — bukan dari cache — agar badge langsung turun
+        // begitu notifikasi ditandai dibaca, tanpa menunggu cache kedaluwarsa.
+        $semua = $this->kandidatMentah($user);
 
         // Status baca user — satu query, di-index berdasarkan identitas notifikasi.
         $dibaca = NotifikasiDibaca::where('user_id', $user->id)
@@ -113,6 +124,45 @@ class NotifikasiService
         });
 
         return $this->cache[$user->id] = $aktif->sortBy('sisa')->values();
+    }
+
+    /**
+     * Kandidat notifikasi mentah — dokumen akan/sudah kedaluwarsa (H-30/H-14/H-7)
+     * dan dokumen yang jatuh tempo tinjauan berkala — SEBELUM penyaringan status
+     * baca per pengguna. Inilah bagian mahal (query + DATE_ADD) yang di-cache
+     * selama 60 menit dengan kunci "notif_expiry_user_{id}".
+     *
+     * @return Collection<int, array>
+     */
+    private function kandidatMentah(User $user): Collection
+    {
+        return Cache::remember(
+            self::cacheKey($user->id),
+            now()->addMinutes(self::CACHE_TTL_MENIT),
+            function () {
+                $batas = now()->startOfDay()->addDays(self::AMBANG_HARI)->toDateString();
+
+                // (a) Dokumen akan / sudah kedaluwarsa
+                $kedaluwarsa = Dokumen::query()
+                    ->where('status', 'berlaku')
+                    ->whereNotNull('tanggal_berakhir')
+                    ->whereDate('tanggal_berakhir', '<=', $batas)
+                    ->orderBy('tanggal_berakhir')
+                    ->limit(self::BATAS_QUERY)
+                    ->get(['id', 'nomor_dokumen', 'judul', 'tanggal_berakhir'])
+                    ->map(fn (Dokumen $d) => $this->bentuk($d, 'kedaluwarsa', $d->tanggal_berakhir));
+
+                // (b) Dokumen perlu review (jatuh tempo tinjauan ≤ ambang atau lewat)
+                $review = Dokumen::butuhTinjauan(self::AMBANG_HARI)
+                    ->with('kategori')
+                    ->limit(self::BATAS_QUERY)
+                    ->get()
+                    ->map(fn (Dokumen $d) => $this->bentuk($d, 'review', $d->jatuhTempoReview()))
+                    ->filter();
+
+                return $kedaluwarsa->concat($review)->values();
+            }
+        );
     }
 
     private function bentuk(Dokumen $dokumen, string $jenis, ?Carbon $acuan): ?array

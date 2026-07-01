@@ -25,7 +25,9 @@ class PortalController extends Controller
                 $query->where(function ($sub) use ($q) {
                     $sub->where('nomor_dokumen', 'like', "%{$q}%")
                         ->orWhere('judul', 'like', "%{$q}%")
-                        ->orWhere('deskripsi', 'like', "%{$q}%");
+                        ->orWhere('deskripsi', 'like', "%{$q}%")
+                        // Pencarian penuh terhadap isi berkas (lapisan teks PDF / OCR).
+                        ->orWhereHas('versi', fn ($v) => $v->where('isi_teks', 'like', "%{$q}%"));
                 });
             })
             ->when($filters['kategori_id'] ?? null, fn ($query, $id) => $query->where('kategori_id', $id))

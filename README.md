@@ -20,6 +20,8 @@ E-ARSIPKU adalah aplikasi berbasis web untuk **mencatat dan mengelola dokumen ad
 - **Notifikasi In-App** — bell notifikasi real-time untuk admin & petugas
 - **Laporan** — daftar dokumen, dokumen kadaluarsa, peminjaman; ekspor PDF & cetak
 - **Portal Pencarian** — antarmuka khusus read-only untuk kepala puskesmas/staf
+- **Pencarian Isi Dokumen (Full-text + OCR)** — mencari berdasarkan isi berkas, bukan hanya nomor/judul. PDF berbasis teks diekstrak murni-PHP; PDF/gambar hasil scan diproses dengan OCR
+- **Audit Akses Berkas** — jejak "siapa melihat & mengunduh dokumen apa", lengkap dengan riwayat akses per dokumen
 - **Master Data** — kategori dokumen, klaster, dan manajemen pengguna
 - **Log Aktivitas** — pencatatan setiap aksi penting di sistem
 
@@ -91,6 +93,52 @@ Untuk produksi di jaringan lokal, arahkan **DocumentRoot Apache** ke folder `pub
 
 - **Upload file**: sesuaikan `php.ini` XAMPP → `upload_max_filesize=10M`, `post_max_size=12M`
 - **Backup database**: `php artisan backup:database` (dapat dijadwalkan via Windows Task Scheduler)
+
+## 🔍 Pencarian Isi Dokumen (Full-text & OCR)
+
+Pencarian dokumen mencakup **isi berkas**, bukan hanya nomor/judul. Strateginya hibrida:
+
+1. **PDF berbasis teks** → lapisan teks diekstrak otomatis (murni-PHP, tanpa instalasi). **Sudah aktif tanpa setup tambahan.**
+2. **PDF/gambar hasil scan** → diproses dengan **OCR**, butuh dua alat di server: **Tesseract** (dengan bahasa Indonesia `ind`) dan **Ghostscript**.
+
+Isi berkas diindeks otomatis setiap kali dokumen ditambah, diterbitkan, atau direvisi. Untuk mengindeks berkas yang sudah ada:
+
+```bash
+php artisan dokumen:indeks-teks              # indeks berkas yang belum terindeks
+php artisan dokumen:indeks-teks --perlu-ocr  # proses ulang berkas scan setelah OCR siap
+php artisan dokumen:indeks-teks --ulang      # indeks ulang seluruh berkas
+```
+
+### Mengaktifkan OCR
+
+**a) XAMPP / Windows (lokal)**
+
+1. Pasang **Tesseract-OCR** (mis. installer UB Mannheim) — saat instalasi, sertakan paket bahasa **Indonesian (`ind`)**.
+2. Pasang **Ghostscript** (versi 64-bit).
+3. Bila keduanya tidak masuk PATH, set di `.env`:
+
+   ```env
+   TESSERACT_PATH="C:\Program Files\Tesseract-OCR\tesseract.exe"
+   GHOSTSCRIPT_PATH="C:\Program Files\gs\gs10.03.0\bin\gswin64c.exe"
+   ```
+
+**b) Hosting online (server Linux — Ubuntu/Debian)**
+
+```bash
+sudo apt update
+sudo apt install -y tesseract-ocr tesseract-ocr-ind ghostscript
+```
+
+Di Linux umumnya `tesseract` & `gs` sudah masuk PATH, jadi `.env` cukup:
+
+```env
+TESSERACT_PATH=tesseract
+GHOSTSCRIPT_PATH=gs
+```
+
+> 💡 Saat di-hosting online, ubah juga `APP_URL` ke domain/HTTPS, set `APP_ENV=production` & `APP_DEBUG=false`, dan pastikan folder `storage/` dapat ditulis oleh web server. OCR berjalan saat unggah — bila berkas besar, naikkan `max_execution_time` PHP atau jalankan `dokumen:indeks-teks` secara terjadwal.
+
+Pengaturan lanjutan (bahasa OCR, DPI, batas halaman, dll.) tersedia di `config/arsip.php`.
 
 ## 📄 Lisensi
 
