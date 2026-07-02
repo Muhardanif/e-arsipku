@@ -25,6 +25,16 @@
     x-init="$watch('collapsed', v => {
         localStorage.setItem('ea-sidebar-collapsed', v ? '1' : '0');
         window.dispatchEvent(new CustomEvent('sidebar-collapse', { detail: v }));
+    });
+    // Kunci scroll body saat drawer mobile terbuka (hanya < lg, tempat sidebar
+    // berperilaku sebagai overlay). Di desktop sidebar bukan drawer → biarkan.
+    $watch('sidebarOpen', open => {
+        const isMobile = window.matchMedia('(max-width: 1023px)').matches;
+        document.body.classList.toggle('overflow-hidden', open && isMobile);
+    });
+    // Tutup drawer & lepaskan kunci bila viewport melar ke desktop saat terbuka.
+    window.addEventListener('resize', () => {
+        if (window.matchMedia('(min-width: 1024px)').matches && sidebarOpen) sidebarOpen = false;
     })"
     class="min-h-full">
     {{-- Overlay (mobile) --}}
