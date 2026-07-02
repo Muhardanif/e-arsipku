@@ -49,6 +49,33 @@
                     @error('file') <p class="mt-1 text-xs text-red-600">{{ $message }}</p> @enderror
                 </div>
 
+                @if ($aiAktif ?? false)
+                    <div x-show="fileName" x-cloak
+                         x-data="saranMetadata({ url: '{{ route('dokumen.saran-metadata') }}', token: '{{ csrf_token() }}' })"
+                         class="rounded-xl border border-accent/20 bg-accent-soft/40 p-4">
+                        <div class="flex flex-wrap items-center justify-between gap-3">
+                            <div class="flex items-start gap-2 text-xs text-slate-600">
+                                @svg('heroicon-o-sparkles', 'h-4 w-4 shrink-0 text-accent')
+                                <span>Baca berkas dengan AI untuk mengisi <span class="font-medium">field yang masih kosong</span> secara otomatis.</span>
+                            </div>
+                            <button type="button" @click="jalankan()" :disabled="loading"
+                                class="inline-flex items-center gap-1.5 rounded-lg bg-accent px-3.5 py-2 text-xs font-semibold text-white shadow-xs transition hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-50">
+                                <span x-show="!loading" class="inline-flex items-center gap-1.5">
+                                    @svg('heroicon-o-sparkles', 'h-4 w-4')
+                                    Isi otomatis dari berkas
+                                </span>
+                                <span x-show="loading" x-cloak class="inline-flex items-center gap-1.5">
+                                    @svg('heroicon-o-arrow-path', 'h-4 w-4 animate-spin')
+                                    Membaca dokumen…
+                                </span>
+                            </button>
+                        </div>
+                        <p x-show="pesan" x-cloak x-text="pesan"
+                           :class="ok ? 'text-emerald-700' : 'text-red-600'"
+                           class="mt-2.5 text-xs"></p>
+                    </div>
+                @endif
+
                 <div>
                     <label for="catatan_revisi" class="block text-sm font-medium text-slate-700">Catatan Versi</label>
                     <input type="text" id="catatan_revisi" name="catatan_revisi" value="{{ old('catatan_revisi') }}"

@@ -11,9 +11,11 @@ use App\Models\DokumenVersi;
 use App\Models\KategoriDokumen;
 use App\Models\Klaster;
 use App\Models\LogAktivitas;
+use App\Services\EkstraksiMetadataAI;
 use App\Services\NotifikasiService;
 use App\Support\EkstraksiTeks;
 use App\Support\PenomoranDokumen;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
@@ -67,13 +69,70 @@ class DokumenController extends Controller
         $klaster = Klaster::orderBy('urutan')->orderBy('kode')->get();
         $formatKategori = $this->formatKategori($kategori, $klaster);
 
-        $data = ['kategori' => $kategori, 'klaster' => $klaster, 'formatKategori' => $formatKategori];
+        $data = [
+            'kategori' => $kategori,
+            'klaster' => $klaster,
+            'formatKategori' => $formatKategori,
+            'aiAktif' => EkstraksiMetadataAI::tersedia(),
+        ];
 
         if ($request->ajax()) {
             return view('dokumen._modal', $data + ['dokumen' => null]);
         }
 
         return view('dokumen.create', $data);
+    }
+
+    /**
+     * Saran metadata otomatis (AI) dari isi berkas, untuk mengisi form tambah.
+     * Endpoint AJAX: menerima berkas, mengekstrak teksnya, lalu meminta model
+     * Claude menyarankan metadata. Tidak menyimpan apa pun — hanya mengembalikan
+     * saran yang ditinjau petugas sebelum disimpan.
+     */
+    public function saranMetadata(Request $request, EkstraksiMetadataAI $ai): JsonResponse
+    {
+        $this->authorizeKelola();
+
+        if (! EkstraksiMetadataAI::tersedia()) {
+            return response()->json(['message' => 'Fitur saran metadata AI belum diaktifkan.'], 503);
+        }
+
+        $request->validate([
+            'file' => ['required', 'file', 'mimes:pdf,jpg,jpeg,png', 'max:10240'],
+        ], [
+            'file.required' => 'Pilih berkas terlebih dahulu.',
+            'file.mimes' => 'Berkas harus berformat PDF, JPG, atau PNG.',
+            'file.max' => 'Ukuran berkas maksimal 10 MB.',
+        ]);
+
+        // Simpan sementara di disk 'local' (EkstraksiTeks bekerja pada path disk),
+        // ekstrak teks, lalu hapus berkas sementaranya apa pun hasilnya.
+        $path = $request->file('file')->store('tmp-ai', 'local');
+
+        try {
+            $hasil = EkstraksiTeks::dariBerkas($path);
+        } finally {
+            Storage::disk('local')->delete($path);
+        }
+
+        if (empty($hasil['teks'])) {
+            return response()->json([
+                'message' => 'Teks berkas tidak terbaca (kemungkinan hasil scan tanpa OCR). Silakan isi form secara manual.',
+            ], 422);
+        }
+
+        try {
+            $saran = $ai->sarankan($hasil['teks'], KategoriDokumen::orderBy('nama')->get());
+        } catch (\RuntimeException $e) {
+            return response()->json(['message' => $e->getMessage()], 502);
+        }
+
+        $this->catatLog('saran_metadata_ai', null, [
+            'metode_ekstraksi' => $hasil['metode'] ?? null,
+            'nama_berkas' => $request->file('file')->getClientOriginalName(),
+        ]);
+
+        return response()->json(['saran' => $saran]);
     }
 
     public function store(StoreDokumenRequest $request): RedirectResponse

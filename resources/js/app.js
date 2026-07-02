@@ -21,6 +21,16 @@ Alpine.data('dokumenNomor', (cfg = {}) => ({
     init() {
         // Bila kategori awal tak punya format, paksa mode manual.
         if (!this.adaFormat) this.mode = 'manual';
+
+        // Saran metadata AI: bila nomor terdeteksi & belum diisi, pakai mode
+        // manual dengan nomor tersebut (dokumen yang sudah punya nomor resmi).
+        window.addEventListener('ai-metadata', (e) => {
+            const d = e.detail || {};
+            if (d.nomor_dokumen && !this.nomorManual) {
+                this.mode = 'manual';
+                this.nomorManual = d.nomor_dokumen;
+            }
+        });
     },
     get fmt() {
         return this.formats[this.kategoriId] || null;
@@ -63,6 +73,97 @@ Alpine.data('dokumenNomor', (cfg = {}) => ({
     },
     onTanggalChange(e) {
         this.tanggal = e.target.value;
+    },
+}));
+
+// Tombol "Isi otomatis (AI)" pada form tambah dokumen. Mengunggah berkas ke
+// endpoint saran-metadata, lalu mengisi field yang MASIH KOSONG (tidak menimpa
+// input petugas). Nomor & kategori diserahkan ke komponen penomoran via event.
+Alpine.data('saranMetadata', (cfg = {}) => ({
+    loading: false,
+    pesan: '',
+    ok: false,
+
+    async jalankan() {
+        const input = document.getElementById('file');
+        const file = input?.files?.[0];
+
+        if (!file) {
+            this.ok = false;
+            this.pesan = 'Pilih berkas terlebih dahulu.';
+            return;
+        }
+
+        this.loading = true;
+        this.pesan = '';
+
+        try {
+            const fd = new FormData();
+            fd.append('file', file);
+
+            const res = await fetch(cfg.url, {
+                method: 'POST',
+                headers: {
+                    'X-CSRF-TOKEN': cfg.token,
+                    'X-Requested-With': 'XMLHttpRequest',
+                    Accept: 'application/json',
+                },
+                body: fd,
+            });
+
+            const data = await res.json().catch(() => ({}));
+
+            if (!res.ok) {
+                this.ok = false;
+                this.pesan = data.message || 'Gagal membaca dokumen.';
+                return;
+            }
+
+            const jml = this.isiForm(data.saran || {});
+            this.ok = true;
+            this.pesan = jml > 0
+                ? `Terisi ${jml} field dari dokumen. Periksa & sesuaikan sebelum menyimpan.`
+                : 'Tidak ada data baru yang bisa diisi (field mungkin sudah terisi).';
+        } catch (e) {
+            this.ok = false;
+            this.pesan = 'Terjadi kesalahan saat menghubungi layanan AI.';
+        } finally {
+            this.loading = false;
+        }
+    },
+
+    // Isi hanya field kosong; kembalikan jumlah field yang terisi.
+    isiForm(s) {
+        let n = 0;
+
+        const isiKosong = (id, val) => {
+            if (!val) return;
+            const el = document.getElementById(id);
+            if (el && !el.value) {
+                el.value = val;
+                el.dispatchEvent(new Event('input', { bubbles: true }));
+                el.dispatchEvent(new Event('change', { bubbles: true }));
+                n++;
+            }
+        };
+
+        // Kategori memicu @change (onKategoriChange) di komponen penomoran.
+        isiKosong('kategori_id', s.kategori_id);
+        isiKosong('judul', s.judul);
+        isiKosong('deskripsi', s.deskripsi);
+        isiKosong('tanggal_dokumen', s.tanggal_dokumen);
+        isiKosong('tanggal_berlaku', s.tanggal_berlaku);
+        isiKosong('tanggal_berakhir', s.tanggal_berakhir);
+        isiKosong('pengesah', s.pengesah);
+
+        // Nomor ditangani komponen penomoran (agar tak melawan mode otomatis).
+        const nomorEl = document.getElementById('nomor_dokumen');
+        if (s.nomor_dokumen && (!nomorEl || !nomorEl.value)) {
+            window.dispatchEvent(new CustomEvent('ai-metadata', { detail: s }));
+            n++;
+        }
+
+        return n;
     },
 }));
 

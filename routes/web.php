@@ -74,6 +74,10 @@ Route::middleware(['auth', 'harus.ganti.password'])->group(function () {
         Route::post('dokumen/{dokumen}/review', [DokumenReviewController::class, 'store'])
             ->name('dokumen.review.store');
 
+        // Saran metadata otomatis (AI) dari isi berkas — mengisi form tambah.
+        Route::post('dokumen/saran-metadata', [DokumenController::class, 'saranMetadata'])
+            ->name('dokumen.saran-metadata');
+
         // Terbitkan draf: unggah berkas final dokumen yang masih draf
         Route::get('dokumen/{dokumen}/terbitkan', [DokumenController::class, 'terbitkanForm'])
             ->name('dokumen.terbitkan.form');
