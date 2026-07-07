@@ -13,12 +13,12 @@
 /.zed
 /auth.json
 /node_modules
-/public/build
+# /public/build  ← sengaja DIIKUTKAN ke Git supaya server (tanpa Node) cukup `git clone`
 /public/hot
 /public/storage
 /storage/*.key
 /storage/pail
-/vendor
+# /vendor  ← sengaja DIIKUTKAN ke Git supaya server (tanpa Composer) cukup `git clone`
 Homestead.json
 Homestead.yaml
 Thumbs.db
