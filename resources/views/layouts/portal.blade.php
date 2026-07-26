@@ -39,8 +39,8 @@
 
         <div class="flex-1"></div>
 
-        {{-- Pintasan ke panel admin (hanya admin/petugas) --}}
-        @if ($user->isAdmin() || $user->isPetugas())
+        {{-- Pintasan ke panel admin (hanya yang punya hak akses menu) --}}
+        @if ($user->bolehPanelAdmin())
             <a href="{{ route('dashboard') }}"
                class="hidden items-center gap-1.5 rounded-lg px-3 py-2 text-sm font-medium text-slate-600 transition hover:bg-slate-100 hover:text-foreground sm:inline-flex">
                 @svg('heroicon-o-squares-2x2', 'h-5 w-5 text-slate-400')
@@ -69,7 +69,7 @@
                     <p class="text-sm font-medium text-foreground">{{ $user->nama }}</p>
                     <p class="text-xs text-slate-500">{{ '@'.$user->username }} · {{ $roleLabel }}</p>
                 </div>
-                @if ($user->isAdmin() || $user->isPetugas())
+                @if ($user->bolehPanelAdmin())
                     <a href="{{ route('dashboard') }}"
                        class="flex w-full items-center gap-2.5 px-4 py-2.5 text-sm text-slate-700 transition hover:bg-slate-50 sm:hidden">
                         @svg('heroicon-o-squares-2x2', 'h-5 w-5 text-slate-400')

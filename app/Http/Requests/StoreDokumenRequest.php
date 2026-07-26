@@ -12,9 +12,7 @@ class StoreDokumenRequest extends FormRequest
 {
     public function authorize(): bool
     {
-        $user = $this->user();
-
-        return $user && ($user->isAdmin() || $user->isPetugas());
+        return $this->user()?->bolehMenu('dokumen-kelola') ?? false;
     }
 
     protected function prepareForValidation(): void

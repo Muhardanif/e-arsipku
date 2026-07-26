@@ -6,6 +6,7 @@ use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\DokumenController;
 use App\Http\Controllers\DokumenReviewController;
 use App\Http\Controllers\DokumenVersiController;
+use App\Http\Controllers\HakAksesMenuController;
 use App\Http\Controllers\KategoriDokumenController;
 use App\Http\Controllers\KlasterController;
 use App\Http\Controllers\LaporanController;
@@ -53,13 +54,15 @@ Route::middleware(['auth', 'harus.ganti.password'])->group(function () {
     Route::get('dokumen/versi/{versi}/download', [DokumenController::class, 'downloadVersi'])
         ->name('dokumen.versi.download');
 
-    // Dokumen — kelola (admin & petugas). Didaftarkan lebih dulu agar
-    // /dokumen/create & /dokumen/{dokumen}/edit tidak tertangkap route show.
+    // Notifikasi in-app — tandai sudah dibaca (admin & petugas)
     Route::middleware('role:admin,petugas')->group(function () {
-        // Notifikasi in-app — tandai sudah dibaca (admin & petugas)
         Route::post('notifikasi/baca', [NotifikasiController::class, 'baca'])->name('notifikasi.baca');
         Route::post('notifikasi/baca-semua', [NotifikasiController::class, 'bacaSemua'])->name('notifikasi.baca-semua');
+    });
 
+    // Dokumen — kelola (hak akses menu diatur admin). Didaftarkan lebih dulu
+    // agar /dokumen/create & /dokumen/{dokumen}/edit tidak tertangkap route show.
+    Route::middleware('menu:dokumen-kelola')->group(function () {
         // Revisi/versi dokumen
         Route::get('dokumen/{dokumen}/versi/create', [DokumenVersiController::class, 'create'])
             ->name('dokumen.versi.create');
@@ -87,42 +90,48 @@ Route::middleware(['auth', 'harus.ganti.password'])->group(function () {
         Route::resource('dokumen', DokumenController::class)
             ->except(['index', 'show'])
             ->parameters(['dokumen' => 'dokumen']);
+    });
 
-        // Peminjaman dokumen fisik (admin & petugas)
+    // Peminjaman dokumen fisik
+    Route::middleware('menu:peminjaman')->group(function () {
         Route::get('peminjaman', [PeminjamanController::class, 'index'])->name('peminjaman.index');
         Route::get('peminjaman/create', [PeminjamanController::class, 'create'])->name('peminjaman.create');
         Route::post('peminjaman', [PeminjamanController::class, 'store'])->name('peminjaman.store');
         Route::patch('peminjaman/{peminjaman}/kembalikan', [PeminjamanController::class, 'kembalikan'])
             ->name('peminjaman.kembalikan');
-
-        // Laporan + export PDF (admin & petugas)
-        Route::prefix('laporan')->name('laporan.')->group(function () {
-            Route::get('/', [LaporanController::class, 'index'])->name('index');
-            Route::get('dokumen', [LaporanController::class, 'dokumen'])->name('dokumen');
-            Route::get('kadaluarsa', [LaporanController::class, 'kadaluarsa'])->name('kadaluarsa');
-            Route::get('review', [LaporanController::class, 'review'])->name('review');
-            Route::get('peminjaman', [LaporanController::class, 'peminjaman'])->name('peminjaman');
-        });
     });
 
-    // Master data & manajemen pengguna (admin saja)
-    Route::middleware('role:admin')->group(function () {
-        Route::resource('master/kategori', KategoriDokumenController::class)
-            ->except('show')
-            ->names('master.kategori')
-            ->parameters(['kategori' => 'kategori']);
+    // Laporan + export PDF
+    Route::middleware('menu:laporan')->prefix('laporan')->name('laporan.')->group(function () {
+        Route::get('/', [LaporanController::class, 'index'])->name('index');
+        Route::get('dokumen', [LaporanController::class, 'dokumen'])->name('dokumen');
+        Route::get('kadaluarsa', [LaporanController::class, 'kadaluarsa'])->name('kadaluarsa');
+        Route::get('review', [LaporanController::class, 'review'])->name('review');
+        Route::get('peminjaman', [LaporanController::class, 'peminjaman'])->name('peminjaman');
+    });
 
-        Route::resource('master/klaster', KlasterController::class)
-            ->except('show')
-            ->names('master.klaster')
-            ->parameters(['klaster' => 'klaster']);
+    // Master data & manajemen pengguna (hak akses menu diatur admin)
+    Route::resource('master/kategori', KategoriDokumenController::class)
+        ->middleware('menu:master-kategori')
+        ->except('show')
+        ->names('master.kategori')
+        ->parameters(['kategori' => 'kategori']);
 
-        // Log aktivitas sistem
-        Route::get('log-aktivitas', [LogAktivitasController::class, 'index'])->name('log-aktivitas.index');
+    Route::resource('master/klaster', KlasterController::class)
+        ->middleware('menu:master-klaster')
+        ->except('show')
+        ->names('master.klaster')
+        ->parameters(['klaster' => 'klaster']);
 
-        // Audit akses berkas — siapa melihat/mengunduh dokumen apa
-        Route::get('audit-akses', [AuditAksesController::class, 'index'])->name('audit-akses.index');
+    // Log aktivitas sistem
+    Route::get('log-aktivitas', [LogAktivitasController::class, 'index'])
+        ->middleware('menu:log-aktivitas')->name('log-aktivitas.index');
 
+    // Audit akses berkas — siapa melihat/mengunduh dokumen apa
+    Route::get('audit-akses', [AuditAksesController::class, 'index'])
+        ->middleware('menu:audit-akses')->name('audit-akses.index');
+
+    Route::middleware('menu:pengguna')->group(function () {
         Route::get('pengguna/{pengguna}/reset-password', [PenggunaController::class, 'resetPasswordForm'])
             ->name('pengguna.reset-password.form');
         Route::patch('pengguna/{pengguna}/reset-password', [PenggunaController::class, 'resetPassword'])
@@ -130,6 +139,14 @@ Route::middleware(['auth', 'harus.ganti.password'])->group(function () {
         Route::patch('pengguna/{pengguna}/toggle-aktif', [PenggunaController::class, 'toggleAktif'])
             ->name('pengguna.toggle-aktif');
         Route::resource('pengguna', PenggunaController::class)->except('show');
+    });
+
+    // Master Hak Akses Menu — tetap khusus admin agar admin tidak bisa terkunci
+    Route::middleware('role:admin')->group(function () {
+        Route::get('master/hak-akses', [HakAksesMenuController::class, 'index'])
+            ->name('master.hak-akses.index');
+        Route::put('master/hak-akses', [HakAksesMenuController::class, 'update'])
+            ->name('master.hak-akses.update');
     });
 
     // Dokumen — lihat daftar/detail (semua role)

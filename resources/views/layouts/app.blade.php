@@ -74,44 +74,68 @@
                 Dokumen
             </x-nav-link>
 
-            @if ($user->isAdmin() || $user->isPetugas())
+            @if ($user->bolehMenu('peminjaman'))
                 <x-nav-link href="{{ url('/peminjaman') }}" :active="request()->is('peminjaman*')">
                     <x-slot:icon>@svg('heroicon-o-arrow-path-rounded-square', 'h-5 w-5')</x-slot:icon>
                     Peminjaman
                 </x-nav-link>
+            @endif
 
+            @if ($user->bolehMenu('laporan'))
                 <x-nav-link href="{{ url('/laporan') }}" :active="request()->is('laporan*')">
                     <x-slot:icon>@svg('heroicon-o-chart-bar', 'h-5 w-5')</x-slot:icon>
                     Laporan
                 </x-nav-link>
             @endif
 
-            @if ($user->isAdmin())
+            @php
+                $adaManajemen = collect(['master-kategori', 'master-klaster', 'pengguna', 'audit-akses', 'log-aktivitas'])
+                    ->contains(fn ($m) => $user->bolehMenu($m));
+            @endphp
+
+            @if ($adaManajemen)
                 <p class="sidebar-section px-3 pt-5 pb-2 text-[11px] font-semibold uppercase tracking-wider text-white/55">Manajemen</p>
 
-                <x-nav-link href="{{ url('/master/kategori') }}" :active="request()->is('master/kategori*')">
-                    <x-slot:icon>@svg('heroicon-o-tag', 'h-5 w-5')</x-slot:icon>
-                    Kategori
-                </x-nav-link>
+                @if ($user->bolehMenu('master-kategori'))
+                    <x-nav-link href="{{ url('/master/kategori') }}" :active="request()->is('master/kategori*')">
+                        <x-slot:icon>@svg('heroicon-o-tag', 'h-5 w-5')</x-slot:icon>
+                        Kategori
+                    </x-nav-link>
+                @endif
 
-                <x-nav-link href="{{ url('/master/klaster') }}" :active="request()->is('master/klaster*')">
-                    <x-slot:icon>@svg('heroicon-o-squares-2x2', 'h-5 w-5')</x-slot:icon>
-                    Klaster
-                </x-nav-link>
+                @if ($user->bolehMenu('master-klaster'))
+                    <x-nav-link href="{{ url('/master/klaster') }}" :active="request()->is('master/klaster*')">
+                        <x-slot:icon>@svg('heroicon-o-squares-2x2', 'h-5 w-5')</x-slot:icon>
+                        Klaster
+                    </x-nav-link>
+                @endif
 
-                <x-nav-link href="{{ url('/pengguna') }}" :active="request()->is('pengguna*')">
-                    <x-slot:icon>@svg('heroicon-o-users', 'h-5 w-5')</x-slot:icon>
-                    Pengguna
-                </x-nav-link>
+                @if ($user->bolehMenu('pengguna'))
+                    <x-nav-link href="{{ url('/pengguna') }}" :active="request()->is('pengguna*')">
+                        <x-slot:icon>@svg('heroicon-o-users', 'h-5 w-5')</x-slot:icon>
+                        Pengguna
+                    </x-nav-link>
+                @endif
 
-                <x-nav-link href="{{ url('/audit-akses') }}" :active="request()->is('audit-akses*')">
-                    <x-slot:icon>@svg('heroicon-o-finger-print', 'h-5 w-5')</x-slot:icon>
-                    Audit Akses
-                </x-nav-link>
+                @if ($user->bolehMenu('audit-akses'))
+                    <x-nav-link href="{{ url('/audit-akses') }}" :active="request()->is('audit-akses*')">
+                        <x-slot:icon>@svg('heroicon-o-finger-print', 'h-5 w-5')</x-slot:icon>
+                        Audit Akses
+                    </x-nav-link>
+                @endif
 
-                <x-nav-link href="{{ url('/log-aktivitas') }}" :active="request()->is('log-aktivitas*')">
-                    <x-slot:icon>@svg('heroicon-o-clock', 'h-5 w-5')</x-slot:icon>
-                    Log Aktivitas
+                @if ($user->bolehMenu('log-aktivitas'))
+                    <x-nav-link href="{{ url('/log-aktivitas') }}" :active="request()->is('log-aktivitas*')">
+                        <x-slot:icon>@svg('heroicon-o-clock', 'h-5 w-5')</x-slot:icon>
+                        Log Aktivitas
+                    </x-nav-link>
+                @endif
+            @endif
+
+            @if ($user->isAdmin())
+                <x-nav-link href="{{ url('/master/hak-akses') }}" :active="request()->is('master/hak-akses*')">
+                    <x-slot:icon>@svg('heroicon-o-lock-closed', 'h-5 w-5')</x-slot:icon>
+                    Hak Akses Menu
                 </x-nav-link>
             @endif
         </nav>

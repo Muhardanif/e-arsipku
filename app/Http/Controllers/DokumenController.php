@@ -442,9 +442,7 @@ class DokumenController extends Controller
 
     private function authorizeKelola(): void
     {
-        $user = auth()->user();
-
-        abort_unless($user && ($user->isAdmin() || $user->isPetugas()), 403,
+        abort_unless(auth()->user()?->bolehMenu('dokumen-kelola'), 403,
             'Anda tidak memiliki akses untuk mengelola dokumen.');
     }
 }

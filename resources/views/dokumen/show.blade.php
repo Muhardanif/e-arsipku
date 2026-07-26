@@ -12,7 +12,7 @@
 
 @section('content')
 @php
-    $bisaKelola = auth()->user()->isAdmin() || auth()->user()->isPetugas();
+    $bisaKelola = auth()->user()->bolehMenu('dokumen-kelola');
     $fmtSize = function ($bytes) {
         if (! $bytes) return '—';
         $units = ['B', 'KB', 'MB', 'GB'];

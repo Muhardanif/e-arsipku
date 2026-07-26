@@ -71,6 +71,30 @@ class User extends Authenticatable
     }
 
     /**
+     * Cek hak akses menu dari tabel menu_akses
+     * (diatur admin di Master > Hak Akses Menu). Admin selalu boleh.
+     */
+    public function bolehMenu(string $menu): bool
+    {
+        return MenuAkses::bolehAkses($this->role, $menu);
+    }
+
+    /**
+     * Punya akses ke panel admin bila boleh minimal satu menu terkelola.
+     * Dipakai untuk menampilkan pintasan "Panel Admin" di portal.
+     */
+    public function bolehPanelAdmin(): bool
+    {
+        foreach (array_keys(MenuAkses::MENUS) as $menu) {
+            if ($this->bolehMenu($menu)) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    /**
      * Halaman beranda sesuai role. Staf (mis. kepala puskesmas / bagian lain)
      * diarahkan ke Portal Pencarian yang bersih, bukan dashboard admin.
      */

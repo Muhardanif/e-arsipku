@@ -8,7 +8,7 @@
 @endsection
 
 @section('content')
-@php $bisaKelola = auth()->user()->isAdmin() || auth()->user()->isPetugas(); @endphp
+@php $bisaKelola = auth()->user()->bolehMenu('dokumen-kelola'); @endphp
 
 <div class="space-y-5">
 

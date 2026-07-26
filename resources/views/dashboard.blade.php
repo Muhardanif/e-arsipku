@@ -30,7 +30,7 @@
             <h2 class="text-2xl font-bold text-foreground">Selamat datang, {{ explode(' ', $user->nama)[0] }}</h2>
             <p class="mt-1 text-sm text-slate-500">Ringkasan arsip dokumen <span class="font-medium text-slate-600">Puskesmas Driyorejo</span> per {{ now()->translatedFormat('d F Y') }}.</p>
         </div>
-        @if ($user->isAdmin() || $user->isPetugas())
+        @if ($user->bolehMenu('dokumen-kelola'))
             <x-button variant="primary" size="sm" :href="route('dokumen.create')" data-modal data-modal-title="Tambah Dokumen">
                 <x-slot:icon>@svg('heroicon-o-plus', 'h-5 w-5')</x-slot>
                 Tambah Dokumen

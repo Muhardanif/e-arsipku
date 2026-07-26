@@ -9,7 +9,7 @@ class UpdateKlasterRequest extends FormRequest
 {
     public function authorize(): bool
     {
-        return $this->user()?->isAdmin() ?? false;
+        return $this->user()?->bolehMenu('master-klaster') ?? false;
     }
 
     public function rules(): array

@@ -8,9 +8,7 @@ class TerbitkanDokumenRequest extends FormRequest
 {
     public function authorize(): bool
     {
-        $user = $this->user();
-
-        return $user && ($user->isAdmin() || $user->isPetugas());
+        return $this->user()?->bolehMenu('dokumen-kelola') ?? false;
     }
 
     public function rules(): array
