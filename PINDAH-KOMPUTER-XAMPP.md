@@ -138,6 +138,19 @@ Pastikan `mod_rewrite` aktif di `httpd.conf` (baris
 `LoadModule rewrite_module modules/mod_rewrite.so` tidak di-comment) dan ada
 `Include conf/extra/httpd-vhosts.conf` (default XAMPP sudah aktif).
 
+**Aktifkan juga kompresi & cache** — di `httpd.conf` hilangkan tanda `#` pada
+tiga baris ini (default XAMPP dikomentari):
+
+```apache
+LoadModule deflate_module modules/mod_deflate.so
+LoadModule expires_module modules/mod_expires.so
+LoadModule filter_module modules/mod_filter.so
+```
+
+Aturannya sudah ada di `public/.htaccess` (ikut Git), tapi tidak jalan kalau
+modulnya belum di-load. Tanpa ini, akses pertama dari HP/komputer lain bisa
+lambat sampai semenit karena JS/CSS dikirim mentah (~1,1 MB).
+
 Cek lalu **restart Apache** (Stop → Start di XAMPP Control Panel):
 ```
 C:\xampp\apache\bin\httpd.exe -t     (harus "Syntax OK")
